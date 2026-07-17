@@ -5,6 +5,8 @@
   document.body.classList.add("js"); // リビール演出はJS有効時のみ（無効時は常時表示）
 
   // === 設定: GASデプロイ後にURLとトークンを書き換える（docs/10参照）===
+  // GAS_TOKEN は認証情報ではなく「公開前提のノイズフィルタ」（GitHub Pagesで全訪問者に配信される）。
+  // 実際の防御はGAS側のvid別レート制限+append-onlyシート。docs/06/07 と ECCレビューM5参照。
   var GAS_URL = "https://script.google.com/macros/s/AKfycbyRPigNdfReK-ha21G43wUzQOHGycYtwlCDY-f2NLy--tJbmiHLF57B6o2oypDjqBN34g/exec"; // 例: https://script.google.com/macros/s/xxxx/exec
   var GAS_TOKEN = "wvU1F6Q5wQ1EB54tbWJH1KjrOWJXT9MCx3cEBfeD";
 
