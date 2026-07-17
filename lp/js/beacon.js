@@ -5,8 +5,8 @@
   document.body.classList.add("js"); // リビール演出はJS有効時のみ（無効時は常時表示）
 
   // === 設定: GASデプロイ後にURLとトークンを書き換える（docs/10参照）===
-  var GAS_URL = "REPLACE_WITH_GAS_WEBAPP_URL"; // 例: https://script.google.com/macros/s/xxxx/exec
-  var GAS_TOKEN = "REPLACE_WITH_TOKEN";
+  var GAS_URL = "https://script.google.com/macros/s/AKfycbyRPigNdfReK-ha21G43wUzQOHGycYtwlCDY-f2NLy--tJbmiHLF57B6o2oypDjqBN34g/exec"; // 例: https://script.google.com/macros/s/xxxx/exec
+  var GAS_TOKEN = "wvU1F6Q5wQ1EB54tbWJH1KjrOWJXT9MCx3cEBfeD";
 
   var configured = GAS_URL.indexOf("https://") === 0;
 
