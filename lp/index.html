@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ペットのおくすり当番 — 家族で防ぐ、飲ませ忘れと二重投薬</title>
+<meta name="description" content="高齢・持病の犬猫の投薬を家族で共有。誰が・いつ・どの薬をあげたかが1タップでわかる、投薬記録アプリ（開発中・事前登録受付中）">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <span class="brand">ペットのおくすり当番</span>
+    <a href="#preregister" class="header-cta" data-ev="cta_click" data-plan="header">事前登録</a>
+  </div>
+</header>
+
+<main>
+<!-- ============ HERO ============ -->
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="hero-eyebrow">高齢・持病ペットの投薬記録アプリ（開発中）</p>
+      <h1 id="hero-heading">その薬、<br>もう飲ませた？</h1>
+      <p class="hero-lead">
+        朝の薬をあげたか、家族の誰も覚えていない。聞くより早く、アプリを開けばわかる。<br class="pc-only">
+        <strong>誰が・いつ・どの薬をあげたか</strong>を家族全員で共有して、飲ませ忘れと二重投薬を防ぎます。
+      </p>
+      <div class="hero-actions">
+        <a href="#pricing" class="btn btn-primary" data-ev="cta_click" data-plan="hero">14日間無料で試す</a>
+        <a href="#problem" class="btn btn-ghost">詳しく見る</a>
+      </div>
+      <p class="hero-note">Android向け・現在クローズドテスト参加世帯を募集しています</p>
+    </div>
+
+    <!-- アプリ画面イメージ（CSSモック） -->
+    <div class="phone" aria-hidden="true">
+      <div class="phone-screen">
+        <div class="phone-appbar">きょうのおくすり <span>7/17(金)</span></div>
+        <div class="phone-pet">🐈 ちゃちゃ（16歳）</div>
+        <div class="dose-card done">
+          <div class="dose-time">朝 8:00</div>
+          <div class="dose-body">
+            <span class="dose-name">腎臓の薬</span>
+            <span class="dose-by">✓ お母さんが 8:02 に投与</span>
+          </div>
+        </div>
+        <div class="dose-card warn">
+          <div class="dose-time">朝 8:00</div>
+          <div class="dose-body">
+            <span class="dose-name">心臓の薬</span>
+            <span class="dose-by">⚠ 記録が2件あります</span>
+          </div>
+        </div>
+        <div class="dose-card todo">
+          <div class="dose-time">夜 20:00</div>
+          <div class="dose-body">
+            <span class="dose-name">腎臓の薬</span>
+            <button class="dose-btn" tabindex="-1">投薬済みにする</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 問題 ============ -->
+<section id="problem" class="problem" aria-labelledby="problem-heading">
+  <div class="wrap">
+    <h2 id="problem-heading">家族で世話をしているほど、<br class="sp-only">起きること</h2>
+    <div class="scene-grid">
+      <article class="scene">
+        <p class="scene-tag">場面 1</p>
+        <p class="scene-quote">「朝の薬、あげた？」<br>LINEで聞いても、返事が来るのは昼。</p>
+        <p class="scene-desc">その間、薬はあげられないまま。聞かれた側も、外出先では思い出せません。</p>
+      </article>
+      <article class="scene">
+        <p class="scene-tag">場面 2</p>
+        <p class="scene-quote">父も母も「自分があげた」と思っていて、実は2回あげていた。</p>
+        <p class="scene-desc">気づけないことも多く、後から不安になって動物病院に電話することに。</p>
+      </article>
+      <article class="scene">
+        <p class="scene-tag">場面 3</p>
+        <p class="scene-quote">通院日、先生に「ちゃんと飲めていますか？」と聞かれて答えられない。</p>
+        <p class="scene-desc">カレンダーやノートの記録は、書いた人にしかわかりません。</p>
+      </article>
+    </div>
+    <p class="problem-close">毎日の投薬がある子ほど、この「誰が・いつ」の空白が積み重なります。</p>
+  </div>
+</section>
+
+<!-- ============ 解決 ============ -->
+<section class="solution" aria-labelledby="solution-heading">
+  <div class="wrap">
+    <h2 id="solution-heading">このアプリがやることは、<br class="sp-only">3つだけ</h2>
+    <div class="feature-grid">
+      <article class="feature">
+        <div class="feature-num">1</div>
+        <h3>誰が・いつ・何をあげたかが残る</h3>
+        <p>投薬したら1タップ。「お母さんが8:02に腎臓の薬」と、家族全員の画面にすぐ反映されます。記録は後から書き換えられない履歴として残るので、通院時にそのまま見せられます。</p>
+      </article>
+      <article class="feature">
+        <div class="feature-num">2</div>
+        <h3>二重投薬の前に、警告</h3>
+        <p>すでに記録がある回に投薬しようとすると「この回はお父さんが投与済みです」と警告。電波のない場所で記録しても、つながったときに重複を検知します。</p>
+      </article>
+      <article class="feature">
+        <div class="feature-num">3</div>
+        <h3>時間になったら通知、そのまま記録</h3>
+        <p>投薬時刻に通知が届き、通知の「投薬済み」ボタンを押すだけで記録完了。家族の招待は6桁のコードを送るだけです。</p>
+      </article>
+    </div>
+    <div class="not-do">
+      <h3>やらないこと</h3>
+      <p>診断・投薬量の提案・薬の飲み合わせ判定など、獣医師の領域には踏み込みません。このアプリは<strong>獣医師の指示どおりに飲ませられたかを、家族で確認するための道具</strong>です。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 料金 ============ -->
+<section id="pricing" class="pricing" aria-labelledby="pricing-heading">
+  <div class="wrap">
+    <h2 id="pricing-heading">料金（予定）</h2>
+    <p class="pricing-lead">はじめの14日間は、家族共有を含む全機能を無料で使えます。</p>
+    <div class="plan-grid">
+      <article class="plan">
+        <h3 class="plan-name">無料プラン</h3>
+        <p class="plan-price"><span class="price-num">¥0</span></p>
+        <ul class="plan-list">
+          <li>ペット1匹・記録する人1人</li>
+          <li>薬2件まで</li>
+          <li>履歴7日分</li>
+          <li>投薬リマインダー通知</li>
+        </ul>
+        <a href="#preregister" class="btn btn-outline plan-cta" data-ev="cta_click" data-plan="free">無料で使う</a>
+      </article>
+      <article class="plan plan-featured">
+        <p class="plan-badge">おすすめ</p>
+        <h3 class="plan-name">月額プラン</h3>
+        <p class="plan-price"><span class="price-num">¥400</span><span class="price-unit">/月</span></p>
+        <ul class="plan-list">
+          <li><strong>家族・シッターと共有</strong>（5人まで）</li>
+          <li>複数ペット（5匹まで）・薬は無制限</li>
+          <li>履歴無制限・書き換え不可の投薬履歴</li>
+          <li>二重投薬の警告</li>
+          <li>通院用のPDF・CSV出力</li>
+          <li>クラウドバックアップ</li>
+        </ul>
+        <button type="button" class="btn btn-primary plan-cta js-buy" data-ev="cta_click" data-plan="monthly">購入に進む</button>
+      </article>
+      <article class="plan">
+        <h3 class="plan-name">年額プラン</h3>
+        <p class="plan-price"><span class="price-num">¥3,900</span><span class="price-unit">/年</span></p>
+        <p class="plan-sub">月あたり325円（約2か月分おトク）</p>
+        <ul class="plan-list">
+          <li>月額プランと同じ内容</li>
+        </ul>
+        <button type="button" class="btn btn-outline plan-cta js-buy" data-ev="cta_click" data-plan="yearly">購入に進む</button>
+      </article>
+    </div>
+    <p class="pricing-note">価格は開発中のもので、正式リリース時に変わる可能性があります。</p>
+  </div>
+</section>
+
+<!-- ============ 事前登録 ============ -->
+<section id="preregister" class="preregister" aria-labelledby="prereg-heading">
+  <div class="wrap prereg-inner">
+    <h2 id="prereg-heading">事前登録</h2>
+    <p class="prereg-lead">
+      このアプリはいま開発中で、まだ発売していません。<br>
+      クローズドテスト（無料）の案内と正式リリースのお知らせを受け取れます。
+    </p>
+    <form id="prereg-form" novalidate>
+      <div class="field">
+        <label for="f-email">メールアドレス（任意）</label>
+        <input type="email" id="f-email" name="email" inputmode="email" autocomplete="email" placeholder="you@example.com">
+        <p class="field-help">未入力でも登録できます。お知らせが不要な方は空欄のままどうぞ。</p>
+      </div>
+      <fieldset class="field">
+        <legend>いまの投薬の状況にいちばん近いもの</legend>
+        <label class="radio"><input type="radio" name="situation" value="daily_multi" checked> 毎日の投薬があり、家族2人以上で世話をしている</label>
+        <label class="radio"><input type="radio" name="situation" value="daily_solo"> 毎日の投薬があり、主に自分ひとりで世話をしている</label>
+        <label class="radio"><input type="radio" name="situation" value="sometimes"> 投薬はときどきある</label>
+        <label class="radio"><input type="radio" name="situation" value="none"> いまは投薬していない</label>
+      </fieldset>
+      <fieldset class="field">
+        <legend>使うとしたら、どのプランが現実的ですか？</legend>
+        <label class="radio"><input type="radio" name="plan_interest" value="monthly" checked> 月額 ¥400</label>
+        <label class="radio"><input type="radio" name="plan_interest" value="yearly"> 年額 ¥3,900</label>
+        <label class="radio"><input type="radio" name="plan_interest" value="free"> 無料プランのみ</label>
+        <label class="radio"><input type="radio" name="plan_interest" value="no"> 有料なら使わない</label>
+      </fieldset>
+      <button type="submit" class="btn btn-primary btn-block">事前登録する</button>
+      <p class="field-help">登録内容は本アプリの開発判断のためだけに使い、第三者に提供しません。<a href="privacy.html">プライバシーポリシー</a></p>
+    </form>
+    <div id="prereg-done" class="prereg-done" hidden>
+      <p><strong>登録を受け付けました。</strong></p>
+      <p>クローズドテストの準備ができ次第、ご連絡します（メール未入力の方はこのページの更新をお待ちください）。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="faq" aria-labelledby="faq-heading">
+  <div class="wrap">
+    <h2 id="faq-heading">よくある質問</h2>
+    <dl class="faq-list">
+      <div class="faq-item">
+        <dt>いつから使えますか？</dt>
+        <dd>現在開発中で、まずクローズドテスト（招待制・無料）から始めます。事前登録いただいた方から順にご案内します。</dd>
+      </div>
+      <div class="faq-item">
+        <dt>iPhoneでは使えますか？</dt>
+        <dd>まずAndroidのみで提供します。iOS対応は検証結果を見て判断します。</dd>
+      </div>
+      <div class="faq-item">
+        <dt>無料のカレンダーやLINEと何が違いますか？</dt>
+        <dd>「書いた人にしかわからない」を無くす点です。投薬の記録は書き換え不可の履歴として全員の画面に同期され、すでに投与済みの回にはアプリが警告を出します。ここは共有カレンダーではできません。</dd>
+      </div>
+      <div class="faq-item">
+        <dt>病気の診断や薬のアドバイスはしてくれますか？</dt>
+        <dd>しません。本アプリは医療機器ではなく、診断・治療・投薬量の助言は一切行いません。投薬内容は必ず獣医師の指示に従ってください。</dd>
+      </div>
+      <div class="faq-item">
+        <dt>データは削除できますか？</dt>
+        <dd>アプリ内からいつでもアカウントと記録を完全に削除できます。</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="footer-disclaimer">本アプリは医療機器ではありません。ペットの診断・治療・投薬の判断は必ず獣医師にご相談ください。本ページの価格・機能は開発中のものであり、変更される場合があります。</p>
+    <p class="footer-links"><a href="privacy.html">プライバシーポリシー</a></p>
+    <p class="footer-copy">© 2026 ペットのおくすり当番（開発中）</p>
+  </div>
+</footer>
+
+<!-- 購入CTAモーダル（未発売の明示） -->
+<div class="modal-backdrop" id="buy-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h3 id="modal-title">まだ発売前です</h3>
+    <p>「ペットのおくすり当番」は開発中のため、まだ購入できません。<br>
+    事前登録いただくと、クローズドテスト（無料）と発売開始のご案内をお送りします。</p>
+    <div class="modal-actions">
+      <a href="#preregister" class="btn btn-primary js-modal-close" id="modal-prereg">事前登録に進む</a>
+      <button type="button" class="btn btn-ghost js-modal-close">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/beacon.js"></script>
+</body>
+</html>
