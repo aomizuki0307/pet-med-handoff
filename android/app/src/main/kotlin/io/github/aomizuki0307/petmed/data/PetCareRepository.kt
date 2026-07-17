@@ -21,6 +21,13 @@ interface PetCareRepository {
     /** バックエンドが実際に構成されているか（prodでgoogle-services.json未配置ならfalse） */
     val isBackendConfigured: Boolean
 
+    /**
+     * 端末に参加済み世帯のIDが保存されているか（復元待ちの判定用）。
+     * trueかつhouseholdState=nullの間はオンボーディングを出さない
+     * （復元前に「新しく始める」を押すと既存世帯IDを上書きしてしまうため）
+     */
+    val hasPersistedHousehold: Boolean
+
     /** 現在参加している世帯の状態。未参加ならnullを流す */
     val householdState: Flow<HouseholdState?>
 

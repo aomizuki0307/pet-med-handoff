@@ -70,7 +70,15 @@ class ScheduleCache(private val context: Context) {
         }.getOrDefault(emptyList())
     }
 
-    /** now以降で最初のスロット（アラーム対象） */
-    suspend fun nextAfter(now: LocalDateTime): CachedSlot? =
-        read().filter { !it.at.isBefore(now) }.minByOrNull { it.at }
+    /**
+     * 次のアラーム対象スロット。
+     * strict=false: now以降（>=） / strict=true: nowより厳密に後（>）
+     * （発火後の再スケジュールはstrict=trueで呼び、早発火時の同一スロット再登録ループを防ぐ）
+     */
+    suspend fun nextAfter(now: LocalDateTime, strict: Boolean = false): CachedSlot? =
+        read().filter { if (strict) it.at.isAfter(now) else !it.at.isBefore(now) }
+            .minByOrNull { it.at }
+
+    /** 指定時刻ちょうどの全スロット（同時刻に複数の薬がある場合をまとめて通知するため） */
+    suspend fun slotsAt(at: LocalDateTime): List<CachedSlot> = read().filter { it.at == at }
 }

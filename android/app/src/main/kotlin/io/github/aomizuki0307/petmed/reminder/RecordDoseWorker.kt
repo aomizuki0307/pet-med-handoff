@@ -73,6 +73,7 @@ class RecordDoseWorker(
                     "status" to status.name.lowercase(),
                     "source" to "notification",
                     "isSecondCaregiver" to isSecond,
+                    "slotDate" to slotDate.toString(),
                 ),
             )
             Result.success()

@@ -16,7 +16,7 @@
 | `onboarding_done` | mode: create\|join | 到達計測 |
 | `pet_registered` | species: dog\|cat, petCount | 前提 |
 | `med_registered` | slotCount, daysPerWeek, medCount | 前提 |
-| `dose_recorded` | status: given\|skipped\|given_late, source: app\|notification, isSecondCaregiver: bool | H1, H2 |
+| `dose_recorded` | status: given\|skipped\|given_late, source: app\|notification, isSecondCaregiver: bool, slotDate: "YYYY-MM-DD"（H2のdistinct日数集計に必須） | H1, H2 |
 | `double_dose_warned` | proceeded: bool, source?: notification（通知経由の抑止時のみ付与） | H1 |
 | `duplicate_detected_after_sync` | — | H1 |
 | `invite_created` | — | H3 |

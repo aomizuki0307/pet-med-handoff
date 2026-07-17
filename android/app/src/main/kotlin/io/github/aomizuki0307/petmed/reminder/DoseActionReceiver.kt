@@ -15,8 +15,8 @@ import androidx.work.WorkManager
 class DoseActionReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val notifId = (intent.getStringExtra(AlarmScheduler.EXTRA_SLOT_ID) ?: "").hashCode()
-        NotificationManagerCompat.from(context).cancel(notifId)
+        val notifId = intent.getIntExtra(AlarmScheduler.EXTRA_NOTIF_ID, 0)
+        if (notifId != 0) NotificationManagerCompat.from(context).cancel(notifId)
 
         val work = OneTimeWorkRequestBuilder<RecordDoseWorker>()
             .setInputData(

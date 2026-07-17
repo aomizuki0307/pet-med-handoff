@@ -14,6 +14,7 @@ import io.github.aomizuki0307.petmed.reminder.DailyRescheduleWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
@@ -33,22 +34,29 @@ class PetMedApp : Application() {
         enqueueDailyReschedule()
     }
 
-    /** 世帯状態が変わるたびにスロットキャッシュを更新し、次のアラームを再セット */
+    /**
+     * 世帯状態が変わるたびにスロットキャッシュを更新し、次のアラームを再セット。
+     * 起動直後の初期null(Firestore復元前)は dropWhile で無視する —
+     * これを処理すると復元前に永続キャッシュと既存アラームを消してしまう。
+     * 非null後のnull(=削除・退出)は正しくクリアとして処理される。
+     */
     private fun observeScheduleChanges() {
         appScope.launch {
-            container.repository.householdState.collect { state ->
-                val slots = if (state == null) {
-                    emptyList()
-                } else {
-                    DoseSlotCalculator.upcomingSlots(
-                        pets = state.pets,
-                        medications = state.medications,
-                        now = LocalDateTime.now(),
-                    )
+            container.repository.householdState
+                .dropWhile { it == null }
+                .collect { state ->
+                    val slots = if (state == null) {
+                        emptyList()
+                    } else {
+                        DoseSlotCalculator.upcomingSlots(
+                            pets = state.pets,
+                            medications = state.medications,
+                            now = LocalDateTime.now(),
+                        )
+                    }
+                    container.scheduleCache.write(slots)
+                    container.alarmScheduler.scheduleNext()
                 }
-                container.scheduleCache.write(slots)
-                container.alarmScheduler.scheduleNext()
-            }
         }
     }
 

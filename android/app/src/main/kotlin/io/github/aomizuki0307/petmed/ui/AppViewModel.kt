@@ -59,8 +59,15 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val analytics = container.analytics
     val alarmScheduler = container.alarmScheduler
 
+    /** 参加済み世帯の復元待ちか（trueの間はオンボーディングを出さない — P1-4） */
+    val awaitingRestore: Boolean
+        get() = repo.hasPersistedHousehold && uiState.value.household == null
+
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
+
+    /** 同期後の重複検知を同一slotKeyで再送しないためのガード（docs/07 duplicate_detected_after_sync） */
+    private val reportedDuplicateSlotKeys = mutableSetOf<String>()
 
     val uiState: StateFlow<AppUiState> =
         combine(repo.householdState, repo.doseRecords) { state, records ->
@@ -70,6 +77,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 DoseSlotCalculator.slotsForDate(it.pets, it.medications, today)
             } ?: emptyList()
             val effective = DoubleDoseDetector.effectiveRecords(records)
+
+            // オフライン同時記録などの重複を同期後に検知して計測（slotKeyごとに1回だけ）
+            DoubleDoseDetector.duplicateSlots(records).keys.forEach { slotKey ->
+                if (reportedDuplicateSlotKeys.add(slotKey)) {
+                    analytics.log("duplicate_detected_after_sync")
+                }
+            }
             val todaySlots = slots.map { slot ->
                 val slotRecords = effective.filter { r ->
                     DoubleDoseDetector.slotKeyOf(r) == slot.slotKey
@@ -192,6 +206,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     "status" to status.name.lowercase(),
                     "source" to "app",
                     "isSecondCaregiver" to isSecond,
+                    // H2(週4日記録)のdistinct日数集計に必須。日付のみでPIIなし — docs/02, docs/07
+                    "slotDate" to slot.slotDate.toString(),
                 ),
             )
             if (proceededAfterWarning) {

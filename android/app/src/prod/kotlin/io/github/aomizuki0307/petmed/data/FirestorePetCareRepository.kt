@@ -45,6 +45,9 @@ class FirestorePetCareRepository(
 
     override val isBackendConfigured = true
 
+    override val hasPersistedHousehold: Boolean
+        get() = prefs.getString(KEY_HID, null) != null
+
     private val prefs = context.getSharedPreferences("firestore_repo", Context.MODE_PRIVATE)
 
     private val _householdState = MutableStateFlow<HouseholdState?>(null)
@@ -344,8 +347,12 @@ class FirestorePetCareRepository(
 
     override suspend fun deleteHousehold() {
         val ref = hhRef()
-        // クライアント側の再帰削除（30世帯規模。Cloud Functionsは使わない — docs/05）
-        for (col in listOf("doseRecords", "medications", "pets", "members")) {
+        // クライアント側の再帰削除（30世帯規模。Cloud Functionsは使わない — docs/05）。
+        // Firestoreは親doc削除でサブコレクションを消さないため、明示的に全サブコレクションを削除する。
+        // 順序が重要: members を先に消すと以降の isOwner 判定が失敗するため、
+        // (1) doseRecords/medications/pets → (2) members全員+世帯docを同一batch
+        // （rulesのget()はbatch適用前の状態を見るので、自分のmember docを含むbatchでもisOwnerが通る）
+        for (col in listOf("doseRecords", "medications", "pets")) {
             while (true) {
                 val snap = ref.collection(col).limit(200).get().await()
                 if (snap.isEmpty) break
@@ -354,7 +361,11 @@ class FirestorePetCareRepository(
                 batch.commit().await()
             }
         }
-        ref.delete().await()
+        val memberSnap = ref.collection("members").get().await()
+        val finalBatch = db.batch()
+        memberSnap.documents.forEach { finalBatch.delete(it.reference) }
+        finalBatch.delete(ref)
+        finalBatch.commit().await()
         finishDeletion()
     }
 

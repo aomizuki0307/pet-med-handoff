@@ -1,8 +1,18 @@
 package io.github.aomizuki0307.petmed.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import kotlinx.coroutines.delay
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,9 +49,24 @@ fun AppNavHost(viewModel: AppViewModel) {
     val navController: NavHostController = rememberNavController()
     val state by viewModel.uiState.collectAsState()
 
+    // 参加済み世帯の復元待ちの間はオンボーディングを出さない（P1-4:
+    // 復元前に「新しく始める」を押すと保存中の世帯IDを新規IDで上書きしてしまう）。
+    // 復元が10秒以内に終わらない場合のみオンボーディングへフォールバックする
+    var restoreTimedOut by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(10_000)
+        restoreTimedOut = true
+    }
+    if (viewModel.awaitingRestore && state.household == null && !restoreTimedOut) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
     // startDestinationは固定（状態で切り替えるとグラフ再生成がnavigateと競合する）。
     // 世帯が読み込まれたらオンボーディングから自動遷移する（prodの再起動復元にも対応）。
-    androidx.compose.runtime.LaunchedEffect(state.household != null) {
+    LaunchedEffect(state.household != null) {
         val onOnboarding = navController.currentDestination?.route == Routes.ONBOARDING
         if (state.household != null && onOnboarding) {
             navController.navigate(Routes.TODAY) { popUpTo(0) }

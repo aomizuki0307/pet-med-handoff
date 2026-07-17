@@ -16,7 +16,9 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 /**
- * 常に「次の1回」だけをAlarmManagerにセットする。
+ * 常に「次の1トリガ時刻」だけをAlarmManagerにセットする。
+ * アラームはトリガ時刻のみを運び、発火時に DoseAlarmReceiver がキャッシュから
+ * 同時刻の全スロットを読んで通知する（同時刻に複数の薬があっても欠落しない）。
  * SCHEDULE_EXACT_ALARM 拒否時は setWindow(±10分) に劣化し、クラッシュさせない。
  * スケジュールの源泉は ScheduleCache のみ（Firestoreに依存しない — docs/05）。
  */
@@ -41,26 +43,22 @@ class AlarmScheduler(
     }
 
     /**
-     * キャッシュから次のスロットを読み、アラームを1本だけセットする。
-     * BroadcastReceiverからは goAsync + この suspend 版を使う
-     * （fire-and-forget だと onReceive 返却後にプロセスが殺され再スケジュールが落ちる）
+     * キャッシュから次のトリガ時刻を読み、アラームを1本だけセットする。
+     * BroadcastReceiverからは goAsync + この suspend 版を使う。
+     * [afterExclusive] 指定時はその時刻より厳密に後のスロットを選ぶ
+     * （発火後の再スケジュール用 — 早発火時に同一スロットを再登録して通知が繰り返すのを防ぐ）。
      */
-    suspend fun scheduleNextNow() {
-        val next = scheduleCache.nextAfter(LocalDateTime.now()) ?: run {
+    suspend fun scheduleNextNow(afterExclusive: LocalDateTime? = null) {
+        val next = if (afterExclusive != null) {
+            scheduleCache.nextAfter(afterExclusive, strict = true)
+        } else {
+            scheduleCache.nextAfter(LocalDateTime.now())
+        } ?: run {
             alarmManager.cancel(pendingIntent())
             return
         }
         val triggerAt = next.at.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val pi = pendingIntent(
-            petName = next.slot.petName,
-            medName = next.slot.medName,
-            slotLabel = next.slot.slotLabel,
-            petId = next.slot.petId,
-            medId = next.slot.medId,
-            slotId = next.slot.slotId,
-            slotDate = next.slot.slotDate.toString(),
-            scheduledAtMillis = triggerAt,
-        )
+        val pi = pendingIntent(triggerLdt = next.at.toString(), scheduledAtMillis = triggerAt)
         try {
             if (canScheduleExact()) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi)
@@ -86,23 +84,11 @@ class AlarmScheduler(
     }
 
     private fun pendingIntent(
-        petName: String = "",
-        medName: String = "",
-        slotLabel: String = "",
-        petId: String = "",
-        medId: String = "",
-        slotId: String = "",
-        slotDate: String = "",
+        triggerLdt: String = "",
         scheduledAtMillis: Long = 0L,
     ): PendingIntent {
         val intent = Intent(context, DoseAlarmReceiver::class.java).apply {
-            putExtra(EXTRA_PET_NAME, petName)
-            putExtra(EXTRA_MED_NAME, medName)
-            putExtra(EXTRA_SLOT_LABEL, slotLabel)
-            putExtra(EXTRA_PET_ID, petId)
-            putExtra(EXTRA_MED_ID, medId)
-            putExtra(EXTRA_SLOT_ID, slotId)
-            putExtra(EXTRA_SLOT_DATE, slotDate)
+            putExtra(EXTRA_TRIGGER_LDT, triggerLdt)
             putExtra(EXTRA_SCHEDULED_AT, scheduledAtMillis)
         }
         // 単一アラーム運用のためrequestCodeは固定。FLAG_UPDATE_CURRENTでextras更新
@@ -116,6 +102,11 @@ class AlarmScheduler(
 
     companion object {
         private const val REQUEST_CODE = 41001
+
+        /** アラームPendingIntent用: トリガ時刻(LocalDateTime文字列) */
+        const val EXTRA_TRIGGER_LDT = "triggerLdt"
+
+        /** 通知アクションIntent用（DoseAlarmReceiverが各スロットに付与） */
         const val EXTRA_PET_NAME = "petName"
         const val EXTRA_MED_NAME = "medName"
         const val EXTRA_SLOT_LABEL = "slotLabel"
@@ -124,5 +115,6 @@ class AlarmScheduler(
         const val EXTRA_SLOT_ID = "slotId"
         const val EXTRA_SLOT_DATE = "slotDate"
         const val EXTRA_SCHEDULED_AT = "scheduledAt"
+        const val EXTRA_NOTIF_ID = "notifId"
     }
 }

@@ -143,9 +143,23 @@ fun TodayScreen(
         },
         snackbarHost = { SnackbarHost(snackbar) },
         floatingActionButton = {
-            val pets = state.household?.pets ?: emptyList()
+            val household = state.household
+            val pets = household?.pets ?: emptyList()
             FloatingActionButton(onClick = {
-                if (pets.isEmpty()) onAddPet() else onAddMed(pets.first().id)
+                when {
+                    pets.isEmpty() -> onAddPet()
+                    household != null &&
+                        !io.github.aomizuki0307.petmed.domain.FreeTierPolicy.canAddMedication(
+                            household.household,
+                            household.medications.count { it.active },
+                            java.time.Instant.now(),
+                        ) -> {
+                        // 無料枠(薬2件)超過 → 価格画面へ（docs/01 F13 / paywall_viewed trigger=med_limit）
+                        viewModel.logPaywallViewed("med_limit")
+                        onOpenPaywall("med_limit")
+                    }
+                    else -> onAddMed(pets.first().id)
+                }
             }) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.med_edit_title_new))
             }

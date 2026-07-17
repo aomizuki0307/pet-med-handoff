@@ -31,6 +31,8 @@ class FakeInMemoryPetCareRepository(
 
     override val isBackendConfigured: Boolean = false
 
+    override val hasPersistedHousehold: Boolean = false // インメモリのため永続世帯なし
+
     private val myUid = "local-user"
     private var myName = ""
 

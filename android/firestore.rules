@@ -35,9 +35,11 @@ service cloud.firestore {
         allow read: if isMember(hid);
         // 自分自身の member ドキュメントのみ作成可。roleは経路で固定:
         // (a) 世帯作成者本人 → owner  (b) 有効な招待コードで参加 → member
+        // (a)は世帯docと同一batchで作成されるため、batch適用後の状態を見る getAfter() を使う
+        // （get()はbatch適用前の状態を返し、新規世帯の初回作成が必ずPERMISSION_DENIEDになる）
         allow create: if signedIn() && request.auth.uid == uid && (
           (
-            get(/databases/$(database)/documents/households/$(hid)).data.createdByUid == request.auth.uid &&
+            getAfter(/databases/$(database)/documents/households/$(hid)).data.createdByUid == request.auth.uid &&
             request.resource.data.role == 'owner'
           ) || (
             request.resource.data.role == 'member' &&
@@ -68,7 +70,9 @@ service cloud.firestore {
         allow create: if isMember(hid) &&
           request.resource.data.recordedByUid == request.auth.uid &&
           request.resource.data.status in ['GIVEN', 'SKIPPED', 'GIVEN_LATE', 'CANCELLED'];
-        allow update, delete: if false; // append-only（監査ログ）。訂正はCANCELLEDレコード追加
+        allow update: if false; // append-only（監査ログ）。訂正はCANCELLEDレコード追加
+        // 削除はオーナーの世帯全削除のみ（個別改ざんではなく完全削除の経路として許可）
+        allow delete: if isOwner(hid);
       }
     }
 
