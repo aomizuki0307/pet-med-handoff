@@ -194,8 +194,9 @@ class FirestorePetCareRepository(
     private fun hhRef() = db.collection("households")
         .document(checkNotNull(currentHouseholdId) { "no household" })
 
-    override suspend fun addPet(name: String, species: Species, birthYear: Int?) {
-        hhRef().collection("pets").document().set(
+    override suspend fun addPet(name: String, species: Species, birthYear: Int?): String {
+        val ref = hhRef().collection("pets").document()
+        ref.set(
             mapOf(
                 "name" to name,
                 "species" to species.name.lowercase(),
@@ -204,6 +205,7 @@ class FirestorePetCareRepository(
                 "archived" to false,
             ),
         ).await()
+        return ref.id
     }
 
     override suspend fun updatePet(pet: Pet) {

@@ -111,12 +111,12 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     // ---- pets & meds ----
 
-    fun addPet(name: String, species: Species, birthYear: Int?, onDone: () -> Unit) {
+    fun addPet(name: String, species: Species, birthYear: Int?, onDone: (petId: String) -> Unit) {
         viewModelScope.launch {
-            repo.addPet(name, species, birthYear)
+            val petId = repo.addPet(name, species, birthYear)
             val count = (uiState.value.household?.pets?.size ?: 0) + 1
             analytics.log("pet_registered", mapOf("species" to species.name.lowercase(), "petCount" to count))
-            onDone()
+            onDone(petId)
         }
     }
 

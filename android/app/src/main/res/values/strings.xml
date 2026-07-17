@@ -77,6 +77,7 @@
     <string name="dup_warn_title">⚠️ すでに記録があります</string>
     <string name="dup_warn_body">この回は %1$s が %2$s に投与済みです。二重投薬になりませんか？</string>
     <string name="dup_warn_proceed">それでも記録する</string>
+    <string name="dup_warn_notif_body">この回は %1$s が %2$s に投与済みのため、記録しませんでした</string>
 
     <!-- 履歴 -->
     <string name="history_title">投薬の履歴</string>

@@ -76,10 +76,11 @@ class FakeInMemoryPetCareRepository(
         )
     }
 
-    override suspend fun addPet(name: String, species: Species, birthYear: Int?) {
+    override suspend fun addPet(name: String, species: Species, birthYear: Int?): String {
         val st = requireState()
         val pet = Pet(id = UUID.randomUUID().toString(), name = name, species = species, birthYear = birthYear)
         _householdState.value = st.copy(pets = st.pets + pet)
+        return pet.id
     }
 
     override suspend fun updatePet(pet: Pet) {

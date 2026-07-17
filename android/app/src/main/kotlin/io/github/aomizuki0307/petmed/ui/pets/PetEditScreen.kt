@@ -107,10 +107,7 @@ fun PetEditScreen(
                     }
                     val year = birthYear.toIntOrNull()
                     if (existing == null) {
-                        viewModel.addPet(name.trim(), species, year) {
-                            val newId = viewModel.uiState.value.household?.pets?.lastOrNull()?.id ?: ""
-                            onSaved(newId)
-                        }
+                        viewModel.addPet(name.trim(), species, year) { newId -> onSaved(newId) }
                     } else {
                         viewModel.updatePet(existing.copy(name = name.trim(), species = species, birthYear = year)) {
                             onSaved(existing.id)

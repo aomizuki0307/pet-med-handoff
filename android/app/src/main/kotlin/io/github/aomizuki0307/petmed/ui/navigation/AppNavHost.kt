@@ -39,9 +39,16 @@ fun AppNavHost(viewModel: AppViewModel) {
     val navController: NavHostController = rememberNavController()
     val state by viewModel.uiState.collectAsState()
 
-    val start = if (state.household == null) Routes.ONBOARDING else Routes.TODAY
+    // startDestinationは固定（状態で切り替えるとグラフ再生成がnavigateと競合する）。
+    // 世帯が読み込まれたらオンボーディングから自動遷移する（prodの再起動復元にも対応）。
+    androidx.compose.runtime.LaunchedEffect(state.household != null) {
+        val onOnboarding = navController.currentDestination?.route == Routes.ONBOARDING
+        if (state.household != null && onOnboarding) {
+            navController.navigate(Routes.TODAY) { popUpTo(0) }
+        }
+    }
 
-    NavHost(navController = navController, startDestination = start) {
+    NavHost(navController = navController, startDestination = Routes.ONBOARDING) {
         composable(Routes.ONBOARDING) {
             OnboardingScreen(
                 viewModel = viewModel,

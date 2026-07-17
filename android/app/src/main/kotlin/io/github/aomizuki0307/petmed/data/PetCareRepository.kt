@@ -32,7 +32,8 @@ interface PetCareRepository {
     /** 招待コードで参加。失敗時は JoinException */
     suspend fun joinHousehold(code: String, displayName: String)
 
-    suspend fun addPet(name: String, species: io.github.aomizuki0307.petmed.domain.model.Species, birthYear: Int?)
+    /** ペットを追加し、新しいペットIDを返す */
+    suspend fun addPet(name: String, species: io.github.aomizuki0307.petmed.domain.model.Species, birthYear: Int?): String
     suspend fun updatePet(pet: Pet)
 
     suspend fun addMedication(medication: Medication)
