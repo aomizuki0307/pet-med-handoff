@@ -1,6 +1,5 @@
 package io.github.aomizuki0307.petmed.data
 
-import io.github.aomizuki0307.petmed.domain.DoubleDoseDetector
 import io.github.aomizuki0307.petmed.domain.model.DoseRecord
 import io.github.aomizuki0307.petmed.domain.model.DoseStatus
 import io.github.aomizuki0307.petmed.domain.model.Household
