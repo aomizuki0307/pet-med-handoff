@@ -1,6 +1,7 @@
 rules_version = '2';
 
 // ペットのおくすり当番 — Firestoreセキュリティルール（docs/05が正典）
+// ECCレビュー(2026-07-17)反映: role固定・invite期限のサーバ強制・authorship検証・フィールド制限
 // 公開前に docs/08 の手動チェックリストでエミュレータ検証すること。
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -14,32 +15,43 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid));
     }
 
+    function isOwner(hid) {
+      return isMember(hid) &&
+        get(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid)).data.role == 'owner';
+    }
+
     match /households/{hid} {
       allow create: if signedIn() &&
-        request.resource.data.createdByUid == request.auth.uid;
-      allow read, update: if isMember(hid);
-      allow delete: if isMember(hid) &&
-        get(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid)).data.role == 'owner';
+        request.resource.data.createdByUid == request.auth.uid &&
+        request.resource.data.planTier == 'free';
+      allow read: if isMember(hid);
+      // 変更できるのは name / planTier のみ（createdByUid・createdAtの改ざん禁止）
+      allow update: if isMember(hid) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'planTier']) &&
+        request.resource.data.planTier in ['free', 'trial', 'paid_intent'];
+      allow delete: if isOwner(hid);
 
       match /members/{uid} {
         allow read: if isMember(hid);
-        // 自分自身の member ドキュメントのみ作成可。
-        // (a) 世帯作成者本人、または (b) 有効な招待コードをドキュメントに含めて参加
+        // 自分自身の member ドキュメントのみ作成可。roleは経路で固定:
+        // (a) 世帯作成者本人 → owner  (b) 有効な招待コードで参加 → member
         allow create: if signedIn() && request.auth.uid == uid && (
-          get(/databases/$(database)/documents/households/$(hid)).data.createdByUid == request.auth.uid
-          || (
+          (
+            get(/databases/$(database)/documents/households/$(hid)).data.createdByUid == request.auth.uid &&
+            request.resource.data.role == 'owner'
+          ) || (
+            request.resource.data.role == 'member' &&
             request.resource.data.inviteCode is string &&
             get(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode)).data.hid == hid &&
             get(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode)).data.revoked == false &&
             get(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode)).data.expiresAt > request.time
           )
         );
-        // 表示名の変更は本人のみ。退出（削除）は本人またはオーナー
-        allow update: if isMember(hid) && request.auth.uid == uid;
-        allow delete: if isMember(hid) && (
-          request.auth.uid == uid ||
-          get(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid)).data.role == 'owner'
-        );
+        // 本人は displayName のみ変更可（roleの自己昇格を禁止）
+        allow update: if isMember(hid) && request.auth.uid == uid &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']);
+        // 退出は本人、除名はオーナー
+        allow delete: if isMember(hid) && (request.auth.uid == uid || isOwner(hid));
       }
 
       match /pets/{petId} {
@@ -51,21 +63,41 @@ service cloud.firestore {
       }
 
       match /doseRecords/{recordId} {
-        allow read, create: if isMember(hid);
+        allow read: if isMember(hid);
+        // 記録者は必ず本人（他人名義の記録を禁止 — 監査ログの信頼性）
+        allow create: if isMember(hid) &&
+          request.resource.data.recordedByUid == request.auth.uid &&
+          request.resource.data.status in ['GIVEN', 'SKIPPED', 'GIVEN_LATE', 'CANCELLED'];
         allow update, delete: if false; // append-only（監査ログ）。訂正はCANCELLEDレコード追加
       }
     }
 
     match /invites/{code} {
-      allow get: if signedIn();   // コードを知っている人だけ参照できる
+      // コードを知っている人だけ・有効なものだけ参照できる（期限切れ・失効の探索を防ぐ）
+      allow get: if signedIn() &&
+        resource.data.revoked == false &&
+        resource.data.expiresAt > request.time;
       allow list: if false;       // 一覧列挙は禁止（総当たり対策）
-      allow create: if signedIn() && isMember(request.resource.data.hid);
-      allow update, delete: if false;
+      // 期限はサーバ側で最大72時間を強制。revoked=falseで作成
+      allow create: if signedIn() && isMember(request.resource.data.hid) &&
+        request.resource.data.createdByUid == request.auth.uid &&
+        request.resource.data.revoked == false &&
+        request.resource.data.expiresAt is timestamp &&
+        request.resource.data.expiresAt <= request.time + duration.value(72, 'h');
+      // 失効はその世帯のオーナーのみ（revokedをtrueへ、他フィールド変更禁止）
+      allow update: if signedIn() && isOwner(resource.data.hid) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revoked']) &&
+        request.resource.data.revoked == true;
+      allow delete: if false;
     }
 
     match /events/{eventId} {
-      allow create: if signedIn();
-      allow read, update, delete: if false; // 分析イベントは書き込み専用
+      // 書き込み専用。サイズと形の軽い検証（フラッディング対策の一部。App Checkはdocs/10参照）
+      allow create: if signedIn() &&
+        request.resource.data.keys().hasOnly(['name', 'params', 'ts', 'hidHash', 'appVersion']) &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() <= 40;
+      allow read, update, delete: if false;
     }
   }
 }

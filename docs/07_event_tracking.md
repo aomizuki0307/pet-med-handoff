@@ -17,19 +17,19 @@
 | `pet_registered` | species: dog\|cat, petCount | 前提 |
 | `med_registered` | slotCount, daysPerWeek, medCount | 前提 |
 | `dose_recorded` | status: given\|skipped\|given_late, source: app\|notification, isSecondCaregiver: bool | H1, H2 |
-| `double_dose_warned` | proceeded: bool | H1 |
+| `double_dose_warned` | proceeded: bool, source?: notification（通知経由の抑止時のみ付与） | H1 |
 | `duplicate_detected_after_sync` | — | H1 |
 | `invite_created` | — | H3 |
 | `invite_accepted` | memberCount | H3 |
 | `notification_opened` | — | H2 |
 | `notification_permission` | granted: bool | リスク計測 |
-| `exact_alarm_permission` | granted: bool | リスク計測 |
+| `exact_alarm_permission` | granted: bool（設定画面から戻ったON_RESUMEで許諾状態が変化した時のみ実測記録） | リスク計測 |
 | `alarm_fired` | delayMinutes: int（±15分KPI自己計測） | H2 |
 | `retention_ping` | daysSinceFirstOpen: 1\|7\|14 | W2継続 |
 | `paywall_viewed` | trigger: history_lock\|pet_limit\|med_limit\|invite\|menu | H4 |
 | `purchase_intent` | plan: monthly\|yearly | H4 |
 | `data_deleted` | scope: member\|household | 運用 |
-| `sync_error` | code（Firestoreエラーコードのみ） | 品質 |
+| `sync_error` | code: parse_medication\|parse_doseRecord\|record_denied（種別のみ・内容は送らない） | 品質 |
 | `app_error` | screen（画面名のみ、メッセージ不可） | 品質 |
 
 共通フィールド: `ts`, `hidHash`, `appVersion`, `name`, `params`。
@@ -40,7 +40,7 @@
 |---|---|---|
 | `page_view` | referrer, utm_source, utm_medium, utm_campaign | 流入元・分母 |
 | `pricing_view` | — （料金セクション50%可視、IntersectionObserver） | 価格到達率 |
-| `cta_click` | plan: free\|monthly\|yearly | **価格CTA率（ゲート≥6%の分子）** |
+| `cta_click` | plan: free\|monthly\|yearly\|header\|hero（CTA率の分子は monthly\|yearly のみ） | **価格CTA率（ゲート≥6%の分子）** |
 | `price_choice` | plan | 想定価格の選択 |
 | `preregister` | hasEmail: bool, plan_interest | 事前登録率 |
 | `leave` | maxScrollPct（visibilitychange時） | 離脱 |

@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,10 +40,11 @@ fun PetEditScreen(
     onSaved: (petId: String) -> Unit,
     onBack: () -> Unit,
 ) {
-    val existing = petId?.let { id -> viewModel.uiState.value.household?.pets?.find { it.id == id } }
-    var name by remember { mutableStateOf(existing?.name ?: "") }
-    var species by remember { mutableStateOf(existing?.species ?: Species.CAT) }
-    var birthYear by remember { mutableStateOf(existing?.birthYear?.toString() ?: "") }
+    val state by viewModel.uiState.collectAsState()
+    val existing = petId?.let { id -> state.household?.pets?.find { it.id == id } }
+    var name by remember(existing?.id) { mutableStateOf(existing?.name ?: "") }
+    var species by remember(existing?.id) { mutableStateOf(existing?.species ?: Species.CAT) }
+    var birthYear by remember(existing?.id) { mutableStateOf(existing?.birthYear?.toString() ?: "") }
     var nameError by remember { mutableStateOf(false) }
 
     Scaffold(

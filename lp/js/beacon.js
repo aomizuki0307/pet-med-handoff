@@ -99,23 +99,50 @@
   document.querySelectorAll(".js-buy").forEach(function (btn) {
     btn.addEventListener("click", function () {
       send("price_choice", { plan: btn.getAttribute("data-plan") || "" });
-      if (modal) {
-        modal.hidden = false;
-        document.body.style.overflow = "hidden";
-      }
+      openModal();
     });
   });
+  // モーダルのフォーカス管理（WAI-ARIA dialogパターン: 移動・Escape・トラップ・復元）
+  var lastFocused = null;
+  function openModal() {
+    if (!modal) return;
+    lastFocused = document.activeElement;
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+    var first = modal.querySelector("a, button");
+    if (first) first.focus();
+  }
+  function closeModal() {
+    if (!modal) return;
+    modal.hidden = true;
+    document.body.style.overflow = "";
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+  }
   if (modal) {
     modal.querySelectorAll(".js-modal-close").forEach(function (el) {
-      el.addEventListener("click", function () {
-        modal.hidden = true;
-        document.body.style.overflow = "";
-      });
+      el.addEventListener("click", closeModal);
     });
     modal.addEventListener("click", function (e) {
-      if (e.target === modal) {
-        modal.hidden = true;
-        document.body.style.overflow = "";
+      if (e.target === modal) closeModal();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (modal.hidden) return;
+      if (e.key === "Escape") {
+        closeModal();
+        return;
+      }
+      if (e.key === "Tab") {
+        var focusables = modal.querySelectorAll("a, button");
+        if (!focusables.length) return;
+        var first = focusables[0];
+        var last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     });
   }

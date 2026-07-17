@@ -53,6 +53,7 @@
     <string name="med_note_label">メモ（任意）</string>
     <string name="med_name_required">薬の名前を入力してください</string>
     <string name="med_slot_required">投薬時刻を1つ以上設定してください</string>
+    <string name="med_stop">この薬の投薬を終了する（記録は履歴に残ります）</string>
 
     <!-- 今日 -->
     <string name="today_title">きょうのおくすり</string>

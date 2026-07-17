@@ -68,6 +68,7 @@ fun TodayScreen(
     onOpenInvite: () -> Unit,
     onAddPet: () -> Unit,
     onAddMed: (petId: String) -> Unit,
+    onEditMed: (petId: String, medId: String) -> Unit,
     onOpenPaywall: (trigger: String) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -82,11 +83,29 @@ fun TodayScreen(
     var notifGranted by remember {
         mutableStateOf(NotificationManagerCompat.from(context).areNotificationsEnabled())
     }
+    var exactGranted by remember { mutableStateOf(viewModel.alarmScheduler.canScheduleExact()) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
         notifGranted = granted
         viewModel.analytics.log("notification_permission", mapOf("granted" to granted))
+    }
+
+    // 設定アプリから戻ったときに権限状態を再取得し、正確なアラームの許諾変化を実測ログする
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                notifGranted = NotificationManagerCompat.from(context).areNotificationsEnabled()
+                val nowExact = viewModel.alarmScheduler.canScheduleExact()
+                if (nowExact != exactGranted) {
+                    exactGranted = nowExact
+                    viewModel.analytics.log("exact_alarm_permission", mapOf("granted" to nowExact))
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     LaunchedEffect(state.household?.medications?.isNotEmpty()) {
         if (state.household?.medications?.isNotEmpty() == true &&
@@ -142,7 +161,7 @@ fun TodayScreen(
             item {
                 PermissionStatusCard(
                     notifGranted = notifGranted,
-                    exactAlarmGranted = viewModel.alarmScheduler.canScheduleExact(),
+                    exactAlarmGranted = exactGranted,
                     onFixNotification = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notifGranted) {
                             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -155,7 +174,7 @@ fun TodayScreen(
                     },
                     onFixExactAlarm = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            viewModel.analytics.log("exact_alarm_permission", mapOf("granted" to false))
+                            // 実際の許諾結果はON_RESUMEで実測ログする（ここではログしない）
                             context.startActivity(
                                 Intent(
                                     Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
@@ -206,6 +225,7 @@ fun TodayScreen(
                             }
                         },
                         onUndo = { record -> viewModel.cancelRecord(record) },
+                        onEditMed = { onEditMed(slotUi.slot.petId, slotUi.slot.medId) },
                     )
                 }
             }

@@ -80,10 +80,12 @@ events/{autoId}                # 分析イベント（07参照。PII・医療入
 
 ## セキュリティルール（firestore.rules 全文は android/firestore.rules）
 
-要点:
-- `households/**` は members に uid が存在する場合のみ read/write
-- `doseRecords` は **create のみ許可、update/delete 拒否**（append-only強制）
-- member の create は「世帯作成者本人」または「有効期限内 invite の code をリクエストに含めて get() 検証成功」のみ
-- `invites` は get のみ（list 禁止 = コード総当たり列挙の防止）、create は当該世帯メンバーのみ
-- `events` は create のみ（read/update/delete 拒否）
+要点（ECCレビュー2026-07-17反映）:
+- `households/**` は members に uid が存在する場合のみ read/write。household更新は name/planTier のみ許可
+- `doseRecords` は **create のみ許可、update/delete 拒否**（append-only強制）。`recordedByUid == auth.uid` を強制（他人名義の記録禁止）
+- member の create は「世帯作成者本人=owner固定」または「有効invite保持=member固定」。**roleの自己昇格は update ルールで禁止**（displayNameのみ変更可）
+- `invites` は有効なもの（revoked=false かつ期限内）だけ get 可・list 禁止。**expiresAt≤72h をサーバ側で強制**。失効(revoked=true)はオーナーのみ
+- オーナーの個別退出は不可（role移譲を許さないため）→ UIは「世帯全削除」のみ提示
+- `events` は create のみ + キー・サイズの軽い検証
 - 公開前に Firebase エミュレータで手動チェックリスト（08参照）必須 — rulesバグ=他世帯侵入事故
+- 補強推奨: Firebase App Check（Play Integrity）でスクリプト経由の総当たり・フラッディングを抑止（docs/10）

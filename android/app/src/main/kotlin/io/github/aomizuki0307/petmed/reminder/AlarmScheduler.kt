@@ -35,46 +35,53 @@ class AlarmScheduler(
             true
         }
 
-    /** キャッシュから次のスロットを読み、アラームを1本だけセットする */
+    /** アプリ内(Activity/Worker)から使うfire-and-forget版 */
     fun scheduleNext() {
-        scope.launch {
-            val next = scheduleCache.nextAfter(LocalDateTime.now()) ?: run {
-                alarmManager.cancel(pendingIntent())
-                return@launch
-            }
-            val triggerAt = next.at.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val pi = pendingIntent(
-                petName = next.slot.petName,
-                medName = next.slot.medName,
-                slotLabel = next.slot.slotLabel,
-                petId = next.slot.petId,
-                medId = next.slot.medId,
-                slotId = next.slot.slotId,
-                slotDate = next.slot.slotDate.toString(),
-                scheduledAtMillis = triggerAt,
-            )
-            try {
-                if (canScheduleExact()) {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi)
-                } else {
-                    // 劣化動作: ±10分の窓
-                    alarmManager.setWindow(
-                        AlarmManager.RTC_WAKEUP,
-                        triggerAt - Duration.ofMinutes(10).toMillis(),
-                        Duration.ofMinutes(20).toMillis(),
-                        pi,
-                    )
-                }
-            } catch (e: SecurityException) {
-                // 権限が発火直前に剥奪されたケース。inexactで再試行
+        scope.launch { scheduleNextNow() }
+    }
+
+    /**
+     * キャッシュから次のスロットを読み、アラームを1本だけセットする。
+     * BroadcastReceiverからは goAsync + この suspend 版を使う
+     * （fire-and-forget だと onReceive 返却後にプロセスが殺され再スケジュールが落ちる）
+     */
+    suspend fun scheduleNextNow() {
+        val next = scheduleCache.nextAfter(LocalDateTime.now()) ?: run {
+            alarmManager.cancel(pendingIntent())
+            return
+        }
+        val triggerAt = next.at.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val pi = pendingIntent(
+            petName = next.slot.petName,
+            medName = next.slot.medName,
+            slotLabel = next.slot.slotLabel,
+            petId = next.slot.petId,
+            medId = next.slot.medId,
+            slotId = next.slot.slotId,
+            slotDate = next.slot.slotDate.toString(),
+            scheduledAtMillis = triggerAt,
+        )
+        try {
+            if (canScheduleExact()) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi)
+            } else {
+                // 劣化動作: ±10分の窓
                 alarmManager.setWindow(
                     AlarmManager.RTC_WAKEUP,
                     triggerAt - Duration.ofMinutes(10).toMillis(),
                     Duration.ofMinutes(20).toMillis(),
                     pi,
                 )
-                analytics.log("app_error", mapOf("screen" to "alarm_security_exception"))
             }
+        } catch (e: SecurityException) {
+            // 権限が発火直前に剥奪されたケース。inexactで再試行
+            alarmManager.setWindow(
+                AlarmManager.RTC_WAKEUP,
+                triggerAt - Duration.ofMinutes(10).toMillis(),
+                Duration.ofMinutes(20).toMillis(),
+                pi,
+            )
+            analytics.log("app_error", mapOf("screen" to "alarm_security_exception"))
         }
     }
 

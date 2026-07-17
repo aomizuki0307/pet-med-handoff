@@ -36,6 +36,11 @@ function doPost(e) {
       return json_({ received: true }); // トークン不一致は記録もしない（荒らし対策）
     }
 
+    // vid単位の軽いレート制限（トークンは公開JSに載る前提のため、洪水対策を別途持つ）
+    if (isRateLimited_(String(payload.vid || 'unknown'))) {
+      return json_({ received: true });
+    }
+
     const p = payload.params || {};
     if (payload.event === 'preregister_detail') {
       // emailを含む行はPreregisterタブのみ（Eventsタブに載せない）
@@ -89,6 +94,19 @@ function s_(v) {
     str = "'" + str;
   }
   return str;
+}
+
+/** vidごとに60秒あたり30イベントまで（CacheServiceベースの簡易レート制限） */
+function isRateLimited_(vid) {
+  try {
+    const cache = CacheService.getScriptCache();
+    const key = 'rl_' + vid.slice(0, 60);
+    const count = Number(cache.get(key) || 0) + 1;
+    cache.put(key, String(count), 60);
+    return count > 30;
+  } catch (err) {
+    return false; // キャッシュ障害時は通す（計測を止めない）
+  }
 }
 
 /** タイミング攻撃対策のダイジェスト比較 */

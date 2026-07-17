@@ -89,7 +89,7 @@ fun InviteScreen(
                 Button(onClick = { viewModel.createInvite() }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.invite_create))
                 }
-            } else {
+            } else code?.let { shownCode ->
                 Card {
                     Column(
                         modifier = Modifier
@@ -98,7 +98,7 @@ fun InviteScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text(code!!, style = MaterialTheme.typography.displayMedium)
+                        Text(shownCode, style = MaterialTheme.typography.displayMedium)
                         Text(
                             stringResource(R.string.invite_expires, "72時間"),
                             style = MaterialTheme.typography.bodySmall,
@@ -113,7 +113,7 @@ fun InviteScreen(
                                 type = "text/plain"
                                 putExtra(
                                     Intent.EXTRA_TEXT,
-                                    "「おくすり当番」の招待コード: $code\nアプリで「招待コードで参加する」から入力してください（72時間有効）",
+                                    "「おくすり当番」の招待コード: $shownCode\nアプリで「招待コードで参加する」から入力してください（72時間有効）",
                                 )
                             },
                             null,

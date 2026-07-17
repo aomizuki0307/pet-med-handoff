@@ -6,8 +6,10 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Source
 import io.github.aomizuki0307.petmed.domain.model.DoseRecord
 import io.github.aomizuki0307.petmed.domain.model.DoseStatus
 import io.github.aomizuki0307.petmed.domain.model.Household
@@ -67,10 +69,21 @@ class FirestorePetCareRepository(
 
     private suspend fun ensureSignedIn(): String {
         auth.currentUser?.let { return it.uid }
-        return auth.signInAnonymously().await().user!!.uid
+        val user = auth.signInAnonymously().await().user
+        return checkNotNull(user) { "anonymous sign-in returned no user" }.uid
     }
 
     val currentHouseholdId: String? get() = prefs.getString(KEY_HID, null)
+
+    /** 同期エラーの計測フック（ContainerFactoryがanalytics生成後に接続。PII禁止 — 種別文字列のみ） */
+    var errorReporter: ((kind: String) -> Unit)? = null
+
+    /** パース失敗を黙って捨てず、種別だけ計測してnullを返す（内容は送らない — docs/07） */
+    private fun <T> parseOrReport(kind: String, block: () -> T): T? =
+        runCatching(block).onFailure {
+            android.util.Log.w("FirestoreRepo", "failed to parse $kind", it)
+            errorReporter?.invoke("parse_$kind")
+        }.getOrNull()
 
     // ---------- listeners ----------
 
@@ -98,7 +111,9 @@ class FirestorePetCareRepository(
         }
         listeners += hhRef.collection("medications").addSnapshotListener { snap, _ ->
             if (snap != null) {
-                medications = snap.documents.mapNotNull { runCatching { it.toMedication() }.getOrNull() }
+                medications = snap.documents.mapNotNull { doc ->
+                    parseOrReport("medication") { doc.toMedication() }
+                }
                 publish()
             }
         }
@@ -108,7 +123,7 @@ class FirestorePetCareRepository(
             .addSnapshotListener { snap, _ ->
                 if (snap != null) {
                     _doseRecords.value = snap.documents.mapNotNull { doc ->
-                        runCatching { doc.toDoseRecord() }.getOrNull()
+                        parseOrReport("doseRecord") { doc.toDoseRecord() }
                     }
                 }
             }
@@ -255,27 +270,48 @@ class FirestorePetCareRepository(
             "source" to source.name.lowercase(),
             "clientRecordId" to clientRecordId,
         )
-        runCatching {
-            hhRef().collection("doseRecords").document(clientRecordId).set(data).await()
-        }.onFailure { e ->
-            // 既存ID（冪等な再送）は成功扱い。それ以外は再throw
-            if (e.message?.contains("PERMISSION_DENIED") != true) throw e
+        val docRef = hhRef().collection("doseRecords").document(clientRecordId)
+        try {
+            // オフライン時は set の Task がサーバACKまで解決しないため、短いタイムアウトで
+            // 「ローカルキュー投入済み=成功」とみなす（Firestoreの永続キューが同期を保証する）
+            kotlinx.coroutines.withTimeoutOrNull(3_000) { docRef.set(data).await() }
+        } catch (e: FirebaseFirestoreException) {
+            if (e.code != FirebaseFirestoreException.Code.PERMISSION_DENIED) throw e
+            // append-onlyルールにより既存IDへの再setはPERMISSION_DENIEDになる。
+            // 「冪等な再送」か「本物の権限エラー(世帯から除名等)」かをドキュメント実在で区別する
+            val existing = runCatching { docRef.get(Source.CACHE).await() }.getOrNull()
+                ?: runCatching { docRef.get().await() }.getOrNull()
+            if (existing == null || !existing.exists()) {
+                errorReporter?.invoke("record_denied")
+                throw e
+            }
+            // 既存doc=先行書込あり → 冪等成功として扱う
         }
     }
 
     override suspend fun createInvite(): String {
         val hid = checkNotNull(currentHouseholdId)
-        val code = (100000..999999).random().toString()
-        db.collection("invites").document(code).set(
-            mapOf(
-                "hid" to hid,
-                "createdByUid" to (auth.currentUser?.uid ?: ""),
-                "createdAt" to FieldValue.serverTimestamp(),
-                "expiresAt" to Timestamp(Instant.now().plusSeconds(72 * 3600).epochSecond, 0),
-                "revoked" to false,
-            ),
-        ).await()
-        return code
+        val random = java.security.SecureRandom()
+        var lastError: Exception? = null
+        // 既存コードとの衝突(create不可)に備えて数回リトライ
+        repeat(3) {
+            val code = (random.nextInt(900000) + 100000).toString()
+            try {
+                db.collection("invites").document(code).set(
+                    mapOf(
+                        "hid" to hid,
+                        "createdByUid" to (auth.currentUser?.uid ?: ""),
+                        "createdAt" to FieldValue.serverTimestamp(),
+                        "expiresAt" to Timestamp(Instant.now().plusSeconds(72 * 3600).epochSecond, 0),
+                        "revoked" to false,
+                    ),
+                ).await()
+                return code
+            } catch (e: FirebaseFirestoreException) {
+                lastError = e
+            }
+        }
+        throw lastError ?: IllegalStateException("invite creation failed")
     }
 
     override suspend fun updateDisplayName(name: String) {
@@ -293,9 +329,14 @@ class FirestorePetCareRepository(
         val st = _householdState.value
         val isOwner = st?.members?.any { it.uid == uid && it.isOwner } == true
         val soleMember = (st?.members?.size ?: 0) <= 1
-        if (isOwner && soleMember) {
-            deleteHousehold()
-            return
+        if (isOwner) {
+            if (soleMember) {
+                deleteHousehold()
+                return
+            }
+            // オーナー退出を許すと世帯がオーナー不在で管理不能になる（rulesはrole変更を禁止）。
+            // MVPでは「オーナーは世帯全削除のみ」とし、UI側は退出ボタンを非表示にする
+            throw PetCareRepository.OwnerCannotLeaveException()
         }
         hhRef().collection("members").document(uid).delete().await()
         finishDeletion()

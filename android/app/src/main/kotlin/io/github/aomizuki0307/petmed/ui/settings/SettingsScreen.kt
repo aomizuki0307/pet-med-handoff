@@ -114,16 +114,19 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
-            TextButton(
-                onClick = { confirmLeave = true },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    stringResource(R.string.settings_delete_leave),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-            if (isOwner) {
+            // オーナーの個別退出は不可（rulesがrole移譲を禁止 → オーナー不在世帯を防ぐ）。
+            // オーナー=世帯全削除のみ / メンバー=退出のみ
+            if (!isOwner) {
+                TextButton(
+                    onClick = { confirmLeave = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        stringResource(R.string.settings_delete_leave),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            } else {
                 TextButton(
                     onClick = { confirmDeleteAll = true },
                     modifier = Modifier.fillMaxWidth(),

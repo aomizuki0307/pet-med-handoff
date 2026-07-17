@@ -63,13 +63,18 @@ interface PetCareRepository {
     /** 有料意向を登録（purchase_intent。課金はしない） */
     suspend fun markPurchaseIntent(plan: String)
 
-    /** 自分のアカウントを削除（世帯から退出）。オーナーで他メンバーがいない場合は世帯ごと削除 */
+    /**
+     * 自分のアカウントを削除（世帯から退出）。オーナーで他メンバーがいない場合は世帯ごと削除。
+     * オーナーに他メンバーがいる場合は OwnerCannotLeaveException（世帯全削除のみ可 — rulesがrole変更を禁止するため）
+     */
     suspend fun deleteMyAccount()
 
     /** 世帯の全データを削除（オーナーのみ） */
     suspend fun deleteHousehold()
 
     class JoinException(message: String) : Exception(message)
+
+    class OwnerCannotLeaveException : Exception("owner must delete the household instead")
 }
 
 /** 分析イベント送信（docs/07 が正典。PII・医療入力値の送信禁止） */

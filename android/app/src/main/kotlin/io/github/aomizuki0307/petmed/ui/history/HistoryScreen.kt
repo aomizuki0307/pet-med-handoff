@@ -50,11 +50,12 @@ fun HistoryScreen(
     val petNames = state.household?.pets?.associate { it.id to it.name } ?: emptyMap()
 
     val limitDays = state.historyLimitDays
-    val cutoff = limitDays?.let { LocalDate.now().minusDays(it) }
+    // 「履歴7日」= 今日を含む7日分（today-6 〜 today）
+    val cutoff = limitDays?.let { LocalDate.now().minusDays(it - 1) }
     val visible = state.records
         .filter { it.status != DoseStatus.CANCELLED }
         .sortedByDescending { it.recordedAt }
-    val cancelled = DoubleDoseDetector.effectiveRecords(state.records).map { it.id }.toSet()
+    val effectiveIds = DoubleDoseDetector.effectiveRecords(state.records).map { it.id }.toSet()
 
     Scaffold(
         topBar = {
@@ -94,7 +95,7 @@ fun HistoryScreen(
                     DoseStatus.SKIPPED -> stringResource(R.string.today_status_skipped)
                     DoseStatus.CANCELLED -> ""
                 }
-                val isCancelled = r.id !in cancelled
+                val isCancelled = r.id !in effectiveIds
                 Card {
                     Column(
                         modifier = Modifier

@@ -34,14 +34,19 @@ class RecordDoseWorker(
         val slotDate = inputData.getString(KEY_SLOT_DATE)?.let(LocalDate::parse) ?: return Result.failure()
         val scheduledAt = Instant.ofEpochMilli(inputData.getLong(KEY_SCHEDULED_AT, 0L))
 
+        // 冪等キー: 同一スロットへの通知起点の記録は1回だけ
+        val clientRecordId = "notif-$petId-$medId-$slotId-$slotDate"
+
         return try {
-            // 二重投薬チェック: 既に他の家族が投与済みなら記録せず知らせる
-            // （オフラインで相手の記録が届いていない場合は検知できず、同期後の重複バナーで捕捉する — docs/05）
-            val existing = DoubleDoseDetector.existingGiven(
-                app.container.repository.doseRecords.first(),
-                DoseSlotCalculator.slotKey(petId, medId, slotId, slotDate),
-            )
+            val records = app.container.repository.doseRecords.first()
+            val slotKey = DoseSlotCalculator.slotKey(petId, medId, slotId, slotDate)
+            // 二重投薬チェック: 既に「他の記録」で投与済みなら記録せず知らせる。
+            // 自分自身の先行書込(リトライ・二重発火)は冪等成功として静かに終了する
+            val existing = DoubleDoseDetector.existingGiven(records, slotKey)
             if (existing != null) {
+                if (existing.clientRecordId == clientRecordId) {
+                    return Result.success() // 自分の前回試行が既に書けている
+                }
                 app.container.analytics.log(
                     "double_dose_warned",
                     mapOf("proceeded" to false, "source" to "notification"),
@@ -58,14 +63,21 @@ class RecordDoseWorker(
                 status = status,
                 scheduledAt = scheduledAt,
                 source = RecordSource.NOTIFICATION,
-                // 冪等キー: 同一スロットへの通知起点の記録は1回だけ
-                clientRecordId = "notif-$petId-$medId-$slotId-$slotDate",
+                clientRecordId = clientRecordId,
             )
+            val hh = app.container.repository.householdState.first()
+            val isSecond = hh != null && records.any { it.recordedByUid != hh.myUid }
             app.container.analytics.log(
                 "dose_recorded",
-                mapOf("status" to status.name.lowercase(), "source" to "notification"),
+                mapOf(
+                    "status" to status.name.lowercase(),
+                    "source" to "notification",
+                    "isSecondCaregiver" to isSecond,
+                ),
             )
             Result.success()
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e // 構造化並行性の契約: キャンセルは握りつぶさない
         } catch (e: Exception) {
             if (runAttemptCount < 3) Result.retry() else Result.failure()
         }

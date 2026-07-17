@@ -28,6 +28,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,15 +54,16 @@ fun MedicationEditScreen(
     onSaved: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val existing = medId?.let { id -> viewModel.uiState.value.household?.medications?.find { it.id == id } }
-    var name by remember { mutableStateOf(existing?.name ?: "") }
-    var dosage by remember { mutableStateOf(existing?.dosageText ?: "") }
-    var note by remember { mutableStateOf(existing?.note ?: "") }
-    val slots = remember {
+    val state by viewModel.uiState.collectAsState()
+    val existing = medId?.let { id -> state.household?.medications?.find { it.id == id } }
+    var name by remember(existing?.id) { mutableStateOf(existing?.name ?: "") }
+    var dosage by remember(existing?.id) { mutableStateOf(existing?.dosageText ?: "") }
+    var note by remember(existing?.id) { mutableStateOf(existing?.note ?: "") }
+    val slots = remember(existing?.id) {
         (existing?.slots ?: listOf(ScheduleSlot(UUID.randomUUID().toString(), LocalTime.of(8, 0), "朝")))
             .toMutableStateList()
     }
-    val days = remember { mutableStateOf<Set<Int>>(existing?.daysOfWeek ?: (1..7).toSet()) }
+    val days = remember(existing?.id) { mutableStateOf<Set<Int>>(existing?.daysOfWeek ?: (1..7).toSet()) }
     var nameError by remember { mutableStateOf(false) }
     var slotError by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
@@ -163,20 +165,46 @@ fun MedicationEditScreen(
                 onClick = {
                     if (name.isBlank()) { nameError = true; return@Button }
                     if (slots.isEmpty()) { slotError = true; return@Button }
-                    val med = Medication(
-                        id = existing?.id ?: "",
+                    // 編集時はcopyでendDate/active等の未編集フィールドを保持する
+                    val med = existing?.copy(
+                        name = name.trim(),
+                        dosageText = dosage.trim(),
+                        slots = slots.toList(),
+                        daysOfWeek = days.value.toSet(),
+                        note = note.trim(),
+                    ) ?: Medication(
+                        id = "",
                         petId = petId,
                         name = name.trim(),
                         dosageText = dosage.trim(),
                         slots = slots.toList(),
                         daysOfWeek = days.value.toSet(),
-                        startDate = existing?.startDate ?: LocalDate.now(),
+                        startDate = LocalDate.now(),
                         note = note.trim(),
                     )
                     viewModel.saveMedication(med, isNew = existing == null, onDone = onSaved)
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) { Text(stringResource(R.string.common_save)) }
+
+            // 投薬の終了（既存の薬のみ）: activeをfalseにして予定・通知から外す。記録は履歴に残る
+            if (existing != null && existing.active) {
+                TextButton(
+                    onClick = {
+                        viewModel.saveMedication(
+                            existing.copy(active = false, endDate = LocalDate.now()),
+                            isNew = false,
+                            onDone = onSaved,
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        stringResource(R.string.med_stop),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
         }
     }
 

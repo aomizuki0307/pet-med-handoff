@@ -71,10 +71,17 @@ gh api repos/aomizuki0307/pet-med-lp/pages -X POST -f "source[branch]=main" -f "
 
 ※ beacon.js のGAS URL書き換え後にpushすること。
 
+## 8. 推奨: Firebase App Check（Play Integrity）
+
+匿名認証のみのため、スクリプトからの招待コード総当たり・eventsフラッディングの抑止として
+App Check の有効化を推奨（Firebaseコンソール → App Check → Play Integrity。クローズドテスト前でなくても可、正式公開前には必須扱い）。
+
 ## 完了チェック
 
 - [ ] google-services.json 配置 & assembleProdDebug 成功
 - [ ] 匿名認証ON / Firestore作成 / rules公開
 - [ ] エミュレータ2台で共有・同期・オフライン復帰を確認
 - [ ] GAS デプロイ & Events タブに page_view
+- [ ] **lp/privacy.html の連絡先メール（REPLACE_CONTACT_EMAIL）を実アドレスに書き換え**
 - [ ] GitHub Pages で LP 公開（privacy.html のURLをPlay Consoleに登録）
+- [ ] （推奨）App Check 有効化

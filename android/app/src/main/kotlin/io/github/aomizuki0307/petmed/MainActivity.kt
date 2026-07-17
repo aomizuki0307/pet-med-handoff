@@ -1,5 +1,6 @@
 package io.github.aomizuki0307.petmed
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,8 +17,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val app = application as PetMedApp
-        if (intent.getBooleanExtra(EXTRA_FROM_NOTIFICATION, false)) {
-            app.container.analytics.log("notification_opened")
+        // 回転などの再生成(savedInstanceState≠null)では再ログしない
+        if (savedInstanceState == null) {
+            logNotificationOpenedIfNeeded(intent)
         }
         if (isFirstOpen()) {
             app.container.analytics.log("first_open")
@@ -29,6 +31,21 @@ class MainActivity : ComponentActivity() {
                 val viewModel: AppViewModel = viewModel()
                 AppNavHost(viewModel)
             }
+        }
+    }
+
+    /** singleTop再入(Activityが最前面のまま通知タップ)はonNewIntentに届く */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        logNotificationOpenedIfNeeded(intent)
+    }
+
+    /** extraを消費して1タップ=1イベントを保証する */
+    private fun logNotificationOpenedIfNeeded(intent: Intent) {
+        if (intent.getBooleanExtra(EXTRA_FROM_NOTIFICATION, false)) {
+            intent.removeExtra(EXTRA_FROM_NOTIFICATION)
+            (application as PetMedApp).container.analytics.log("notification_opened")
         }
     }
 

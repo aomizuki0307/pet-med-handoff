@@ -1,5 +1,6 @@
 package io.github.aomizuki0307.petmed.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -67,12 +68,13 @@ fun PermissionStatusCard(
 
 private val timeFmt = DateTimeFormatter.ofPattern("H:mm")
 
-/** 今日の1スロットのカード。状態: 未記録 / 済 / 遅れ / 見送り / 重複 */
+/** 今日の1スロットのカード。状態: 未記録 / 済 / 遅れ / 見送り / 重複。左側タップで薬の編集へ */
 @Composable
 fun DoseSlotCard(
     slotUi: TodaySlotUi,
     onRecordGiven: () -> Unit,
     onUndo: (DoseRecord) -> Unit,
+    onEditMed: () -> Unit,
 ) {
     val containerColor = when {
         slotUi.isDuplicate -> WarnBg
@@ -86,7 +88,12 @@ fun DoseSlotCard(
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(onClick = onEditMed),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
                 Text(
                     "${slotUi.slot.slotLabel} ${slotUi.slot.time.format(timeFmt)}  ${slotUi.slot.medName}",
                     style = MaterialTheme.typography.titleSmall,

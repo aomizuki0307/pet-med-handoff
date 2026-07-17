@@ -12,6 +12,10 @@ import androidx.core.content.ContextCompat
 import io.github.aomizuki0307.petmed.MainActivity
 import io.github.aomizuki0307.petmed.PetMedApp
 import io.github.aomizuki0307.petmed.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** 投薬時刻の通知を表示し、次のアラームを再セットする */
 class DoseAlarmReceiver : BroadcastReceiver() {
@@ -33,7 +37,17 @@ class DoseAlarmReceiver : BroadcastReceiver() {
         }
         app.container.analytics.log("alarm_fired", mapOf("delayMinutes" to delayMin))
 
-        app.container.alarmScheduler.scheduleNext()
+        // goAsync: onReceive返却後のプロセスkillで次アラームの再セットが落ちるのを防ぐ
+        val pending = goAsync()
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                withTimeoutOrNull(8_000) {
+                    app.container.alarmScheduler.scheduleNextNow()
+                }
+            } finally {
+                pending.finish()
+            }
+        }
     }
 
     private fun showNotification(

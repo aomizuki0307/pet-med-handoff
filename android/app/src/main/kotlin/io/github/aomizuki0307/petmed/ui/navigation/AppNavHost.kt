@@ -72,8 +72,10 @@ fun AppNavHost(viewModel: AppViewModel) {
                 petId = petId,
                 onSaved = { savedPetId ->
                     if (petId == null && viewModel.uiState.value.household?.medications?.none { it.petId == savedPetId } != false) {
-                        // 初回登録フロー: ペット→薬登録へ
-                        navController.navigate(Routes.medEdit(savedPetId)) { popUpTo(Routes.TODAY) }
+                        // 初回登録フロー: ペット→薬登録へ（PET_EDITは戻れないように消す）
+                        navController.navigate(Routes.medEdit(savedPetId)) {
+                            popUpTo(Routes.PET_EDIT) { inclusive = true }
+                        }
                     } else {
                         navController.popBackStack()
                     }
@@ -100,6 +102,7 @@ fun AppNavHost(viewModel: AppViewModel) {
                 onOpenInvite = { navController.navigate(Routes.INVITE) },
                 onAddPet = { navController.navigate(Routes.petEdit()) },
                 onAddMed = { petId -> navController.navigate(Routes.medEdit(petId)) },
+                onEditMed = { petId, medId -> navController.navigate(Routes.medEdit(petId, medId)) },
                 onOpenPaywall = { trigger -> navController.navigate(Routes.paywall(trigger)) },
             )
         }

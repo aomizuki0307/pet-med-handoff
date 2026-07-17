@@ -15,12 +15,17 @@ import io.github.aomizuki0307.petmed.domain.model.Medication
 import io.github.aomizuki0307.petmed.domain.model.Pet
 import io.github.aomizuki0307.petmed.domain.model.RecordSource
 import io.github.aomizuki0307.petmed.domain.model.Species
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -55,7 +60,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     val alarmScheduler = container.alarmScheduler
 
     private val _message = MutableStateFlow<String?>(null)
-    val message: StateFlow<String?> = _message
+    val message: StateFlow<String?> = _message.asStateFlow()
 
     val uiState: StateFlow<AppUiState> =
         combine(repo.householdState, repo.doseRecords) { state, records ->
@@ -84,7 +89,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 historyLimitDays = state?.let { FreeTierPolicy.historyLimitDays(it.household, now) },
                 isBackendConfigured = repo.isBackendConfigured,
             )
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, AppUiState())
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppUiState())
 
     // ---- onboarding ----
 
@@ -101,8 +106,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 repo.joinHousehold(code.trim(), displayName)
                 analytics.log("onboarding_done", mapOf("mode" to "join"))
-                analytics.log("invite_accepted", mapOf("memberCount" to (uiState.value.household?.members?.size ?: 0)))
+                // uiState(派生Flow)ではなくリポジトリの最初の非null状態から実数を取る
+                val members = withTimeoutOrNull(3_000) {
+                    repo.householdState.filterNotNull().first()
+                }?.members?.size ?: -1
+                analytics.log("invite_accepted", mapOf("memberCount" to members))
                 onDone()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 onError()
             }
@@ -111,10 +122,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     // ---- pets & meds ----
 
+    /** 変異後の実数はリポジトリの状態から読む（派生uiStateはまだ古い可能性がある） */
+    private suspend fun repoSnapshot() =
+        withTimeoutOrNull(3_000) { repo.householdState.filterNotNull().first() }
+
     fun addPet(name: String, species: Species, birthYear: Int?, onDone: (petId: String) -> Unit) {
         viewModelScope.launch {
             val petId = repo.addPet(name, species, birthYear)
-            val count = (uiState.value.household?.pets?.size ?: 0) + 1
+            val count = repoSnapshot()?.pets?.size ?: -1
             analytics.log("pet_registered", mapOf("species" to species.name.lowercase(), "petCount" to count))
             onDone(petId)
         }
@@ -136,7 +151,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     mapOf(
                         "slotCount" to med.slots.size,
                         "daysPerWeek" to med.daysOfWeek.size,
-                        "medCount" to (uiState.value.household?.medications?.size ?: 0) + 1,
+                        "medCount" to (repoSnapshot()?.medications?.size ?: -1),
                     ),
                 )
             }

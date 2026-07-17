@@ -36,6 +36,7 @@ object ContainerFactory {
         val auth = FirebaseAuth.getInstance()
         val repository = FirestorePetCareRepository(app, db, auth, scope)
         val analytics = FirestoreAnalyticsLogger(db) { repository.currentHouseholdId }
+        repository.errorReporter = { kind -> analytics.log("sync_error", mapOf("code" to kind)) }
         return object : AppContainer {
             override val repository: PetCareRepository = repository
             override val analytics: AnalyticsLogger = analytics
