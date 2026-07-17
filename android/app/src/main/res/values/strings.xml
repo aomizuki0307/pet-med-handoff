@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 日本語をデフォルトに集約（将来 values-en を追加して英語対応） -->
+<resources>
+    <string name="app_name">おくすり当番</string>
+
+    <!-- 共通 -->
+    <string name="common_next">次へ</string>
+    <string name="common_save">保存する</string>
+    <string name="common_cancel">キャンセル</string>
+    <string name="common_close">閉じる</string>
+    <string name="common_delete">削除する</string>
+    <string name="common_back">戻る</string>
+    <string name="common_undo">取り消す</string>
+    <string name="common_loading">読み込み中…</string>
+
+    <!-- オンボーディング -->
+    <string name="onboarding_title">その薬、もう飲ませた？</string>
+    <string name="onboarding_body">高齢・持病ペットの投薬を家族で共有し、飲ませ忘れと二重投薬を防ぐアプリです。誰が・いつ・どの薬をあげたかが、家族全員の画面にすぐ反映されます。</string>
+    <string name="onboarding_disclaimer">本アプリは医療機器ではありません。診断・治療・投薬量の助言は行いません。投薬内容は必ず獣医師の指示に従ってください。</string>
+    <string name="onboarding_your_name">あなたの表示名（例: お母さん）</string>
+    <string name="onboarding_create">新しく始める</string>
+    <string name="onboarding_join">招待コードで参加する</string>
+    <string name="onboarding_name_required">表示名を入力してください</string>
+
+    <!-- 招待参加 -->
+    <string name="join_title">招待コードで参加</string>
+    <string name="join_body">家族から共有された6桁のコードを入力してください。</string>
+    <string name="join_code_label">招待コード</string>
+    <string name="join_submit">参加する</string>
+    <string name="join_error_invalid">コードが見つからないか、期限切れです</string>
+
+    <!-- ペット -->
+    <string name="pet_edit_title_new">ペットを登録</string>
+    <string name="pet_edit_title_edit">ペットを編集</string>
+    <string name="pet_name_label">名前</string>
+    <string name="pet_species_dog">犬</string>
+    <string name="pet_species_cat">猫</string>
+    <string name="pet_birth_year_label">生まれた年（任意）</string>
+    <string name="pet_name_required">名前を入力してください</string>
+
+    <!-- 薬 -->
+    <string name="med_edit_title_new">薬を登録</string>
+    <string name="med_edit_title_edit">薬を編集</string>
+    <string name="med_name_label">薬の名前</string>
+    <string name="med_dosage_label">用量・獣医師の指示（そのまま記入）</string>
+    <string name="med_dosage_hint">例: 1回1錠、朝夕食後</string>
+    <string name="med_slots_label">投薬時刻</string>
+    <string name="med_slot_add">時刻を追加</string>
+    <string name="med_slot_morning">朝</string>
+    <string name="med_slot_noon">昼</string>
+    <string name="med_slot_evening">夜</string>
+    <string name="med_days_label">曜日</string>
+    <string name="med_note_label">メモ（任意）</string>
+    <string name="med_name_required">薬の名前を入力してください</string>
+    <string name="med_slot_required">投薬時刻を1つ以上設定してください</string>
+
+    <!-- 今日 -->
+    <string name="today_title">きょうのおくすり</string>
+    <string name="today_empty">今日の投薬予定はありません</string>
+    <string name="today_no_meds">まだ薬が登録されていません。「＋」から登録してください。</string>
+    <string name="today_record_given">投薬済みにする</string>
+    <string name="today_status_given">投与済み</string>
+    <string name="today_status_late">遅れて投与</string>
+    <string name="today_status_skipped">見送り</string>
+    <string name="today_recorded_by">%1$s が %2$s に投与</string>
+    <string name="today_skipped_by">%1$s が見送りを記録</string>
+    <string name="today_duplicate_badge">記録が2件以上あります</string>
+    <string name="today_recorded_snackbar">記録しました</string>
+
+    <!-- 記録シート -->
+    <string name="record_sheet_title">投薬を記録</string>
+    <string name="record_given">投薬済み</string>
+    <string name="record_skipped">見送り</string>
+    <string name="record_note">この記録は取り消し以外で書き換えできません（家族全員に共有されます）</string>
+
+    <!-- 二重投薬警告 -->
+    <string name="dup_warn_title">⚠️ すでに記録があります</string>
+    <string name="dup_warn_body">この回は %1$s が %2$s に投与済みです。二重投薬になりませんか？</string>
+    <string name="dup_warn_proceed">それでも記録する</string>
+
+    <!-- 履歴 -->
+    <string name="history_title">投薬の履歴</string>
+    <string name="history_empty">まだ記録がありません</string>
+    <string name="history_locked">無料プランでは7日前までの履歴を表示できます</string>
+    <string name="history_locked_cta">プランを見る</string>
+    <string name="history_cancelled">（取り消し済み）</string>
+
+    <!-- 招待 -->
+    <string name="invite_title">家族を招待</string>
+    <string name="invite_body">このコードを家族に伝えてください。72時間有効です。</string>
+    <string name="invite_create">招待コードを作る</string>
+    <string name="invite_share">コードを共有する</string>
+    <string name="invite_members_title">参加しているメンバー</string>
+    <string name="invite_expires">有効期限: %1$s</string>
+
+    <!-- プラン -->
+    <string name="paywall_title">プラン</string>
+    <string name="paywall_lead">はじめの14日間は全機能を無料で使えます。</string>
+    <string name="paywall_free_name">無料プラン</string>
+    <string name="paywall_free_desc">ペット1匹・記録1人・薬2件・履歴7日</string>
+    <string name="paywall_monthly_name">月額プラン ¥400/月</string>
+    <string name="paywall_yearly_name">年額プラン ¥3,900/年</string>
+    <string name="paywall_paid_desc">家族5人まで共有・複数ペット・履歴無制限・監査履歴・二重投薬警告・PDF/CSV出力・バックアップ</string>
+    <string name="paywall_cta">購入に進む</string>
+    <string name="paywall_not_ready_title">まだ準備中です</string>
+    <string name="paywall_not_ready_body">課金機能は準備中です。ご意向は開発の参考にさせていただきます。開始時にアプリ内でお知らせします。</string>
+
+    <!-- 設定 -->
+    <string name="settings_title">設定</string>
+    <string name="settings_display_name">表示名</string>
+    <string name="settings_plan">プラン</string>
+    <string name="settings_invite">家族を招待</string>
+    <string name="settings_notifications">通知の状態</string>
+    <string name="settings_privacy">プライバシーポリシー</string>
+    <string name="settings_delete_leave">この世帯から退出してデータを削除</string>
+    <string name="settings_delete_household">世帯のデータをすべて削除</string>
+    <string name="settings_delete_confirm_title">本当に削除しますか？</string>
+    <string name="settings_delete_leave_body">あなたのアカウントを削除します。世帯の投薬記録は他のメンバーに残ります。</string>
+    <string name="settings_delete_household_body">ペット・薬・投薬記録を含む世帯のすべてのデータを完全に削除します。この操作は元に戻せません。</string>
+    <string name="settings_backend_not_configured">Firebase未設定のため、このビルドでは端末内のデモデータで動作しています（同期されません）</string>
+
+    <!-- 権限 -->
+    <string name="perm_notification_off">通知がオフです。投薬リマインダーが届きません。</string>
+    <string name="perm_exact_alarm_off">正確な時刻の通知が許可されていません。通知が最大10分前後ずれることがあります。</string>
+    <string name="perm_fix">設定する</string>
+
+    <!-- 通知 -->
+    <string name="notif_channel_name">投薬リマインダー</string>
+    <string name="notif_channel_desc">投薬時刻の通知</string>
+    <string name="notif_title">%1$s のおくすり</string>
+    <string name="notif_body">%1$s（%2$s）の時間です</string>
+    <string name="notif_action_given">投薬済み</string>
+</resources>

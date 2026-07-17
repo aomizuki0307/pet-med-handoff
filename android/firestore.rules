@@ -1,0 +1,71 @@
+rules_version = '2';
+
+// ペットのおくすり当番 — Firestoreセキュリティルール（docs/05が正典）
+// 公開前に docs/08 の手動チェックリストでエミュレータ検証すること。
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(hid) {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid));
+    }
+
+    match /households/{hid} {
+      allow create: if signedIn() &&
+        request.resource.data.createdByUid == request.auth.uid;
+      allow read, update: if isMember(hid);
+      allow delete: if isMember(hid) &&
+        get(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid)).data.role == 'owner';
+
+      match /members/{uid} {
+        allow read: if isMember(hid);
+        // 自分自身の member ドキュメントのみ作成可。
+        // (a) 世帯作成者本人、または (b) 有効な招待コードをドキュメントに含めて参加
+        allow create: if signedIn() && request.auth.uid == uid && (
+          get(/databases/$(database)/documents/households/$(hid)).data.createdByUid == request.auth.uid
+          || (
+            request.resource.data.inviteCode is string &&
+            get(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode)).data.hid == hid &&
+            get(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode)).data.revoked == false &&
+            get(/databases/$(database)/documents/invites/$(request.resource.data.inviteCode)).data.expiresAt > request.time
+          )
+        );
+        // 表示名の変更は本人のみ。退出（削除）は本人またはオーナー
+        allow update: if isMember(hid) && request.auth.uid == uid;
+        allow delete: if isMember(hid) && (
+          request.auth.uid == uid ||
+          get(/databases/$(database)/documents/households/$(hid)/members/$(request.auth.uid)).data.role == 'owner'
+        );
+      }
+
+      match /pets/{petId} {
+        allow read, write: if isMember(hid);
+      }
+
+      match /medications/{medId} {
+        allow read, write: if isMember(hid);
+      }
+
+      match /doseRecords/{recordId} {
+        allow read, create: if isMember(hid);
+        allow update, delete: if false; // append-only（監査ログ）。訂正はCANCELLEDレコード追加
+      }
+    }
+
+    match /invites/{code} {
+      allow get: if signedIn();   // コードを知っている人だけ参照できる
+      allow list: if false;       // 一覧列挙は禁止（総当たり対策）
+      allow create: if signedIn() && isMember(request.resource.data.hid);
+      allow update, delete: if false;
+    }
+
+    match /events/{eventId} {
+      allow create: if signedIn();
+      allow read, update, delete: if false; // 分析イベントは書き込み専用
+    }
+  }
+}

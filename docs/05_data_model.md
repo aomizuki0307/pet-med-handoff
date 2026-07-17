@@ -33,7 +33,9 @@ households/{hid}/members/{uid}
 households/{hid}/pets/{petId}
   name, species: "dog" | "cat", birthYear?, note?, archived: bool
 
-households/{hid}/pets/{petId}/medications/{medId}
+households/{hid}/medications/{medId}   # petIdフィールドでペットに紐付け
+                                       # （petsのサブコレクションにしない: リスナー1本で全薬を監視するため）
+  petId,
   name, dosageText,            # 獣医指示を自由文のまま（量の解釈・推奨はしない）
   active: bool,
   slots: [ { slotId, time: "08:00", label: "朝" } ],
