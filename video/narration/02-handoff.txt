@@ -1,0 +1,1 @@
+This is the Build Week caregiver handoff. It derives today's progress, the next unresolved schedule, overdue items, duplicate-record warnings, and recent activity from the same effective timeline as the Today screen. Here one of three scheduled actions is complete, and the next caregiver can immediately see what still needs confirmation.

@@ -32,6 +32,8 @@ The Git history is the timestamped source of truth for individual changes.
 7. Installed the APK on an Android emulator and verified cold start, Today,
    handoff navigation, and the Android text share sheet.
 8. Produced the English README, Devpost copy, judge instructions, and video script.
+9. Generated a reproducible 94.8-second, 1080p H.264/AAC demo with English
+   narration and verified its duration and streams with FFprobe.
 
 ## Human decisions
 

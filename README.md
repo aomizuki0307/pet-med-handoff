@@ -6,6 +6,8 @@ chronically ill pets. It makes one safety-critical question easy to answer:
 
 Built during OpenAI Build Week 2026 with Codex and GPT-5.6.
 
+[Watch/download the 95-second English demo](https://github.com/aomizuki0307/pet-med-handoff/releases/download/build-week-2026/build-week-demo.mp4).
+
 > Okusuri Toban records and shares caregiver actions. It does not diagnose,
 > recommend medication, interpret dosage, or replace veterinary instructions.
 
@@ -117,6 +119,9 @@ The main Build Week Codex thread is recorded as session
 `019f7203-4816-7e11-a87d-e21e93f74186`. See
 [`docs/BUILD_WEEK_DEVELOPMENT.md`](docs/BUILD_WEEK_DEVELOPMENT.md) for the dated
 new-work record.
+
+The demo is reproducible with `video/build_demo.ps1`; its four narration source
+files and captured evidence remain in the repository.
 
 ## Test coverage
 

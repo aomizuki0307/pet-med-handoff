@@ -1,0 +1,1 @@
+One tap opens the Android share sheet with a bounded summary: progress, the next schedule, and a safety disclaimer. Dosage instructions are deliberately excluded. This product coordinates records; it never diagnoses, recommends medication, or claims that a database record proves what physically happened.

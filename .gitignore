@@ -21,3 +21,7 @@ Thumbs.db
 .env.*
 !.env.example
 gas_config.local.*
+
+# Reproducible Build Week video outputs (final MP4 is attached to the release)
+video/build/
+video/build-week-demo.mp4

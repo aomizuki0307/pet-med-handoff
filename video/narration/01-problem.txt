@@ -1,0 +1,1 @@
+When several people care for an aging pet, one question can be surprisingly hard: has someone already given this medicine? A delayed chat reply leaves the next caregiver guessing. Okusuri Toban gives the household one shared, append-only medication record, with the caregiver and time attached.
