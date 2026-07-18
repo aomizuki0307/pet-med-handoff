@@ -64,6 +64,7 @@ import java.time.format.DateTimeFormatter
 fun TodayScreen(
     viewModel: AppViewModel,
     onOpenHistory: () -> Unit,
+    onOpenHandoff: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenInvite: () -> Unit,
     onAddPet: () -> Unit,
@@ -198,6 +199,28 @@ fun TodayScreen(
                         }
                     },
                 )
+            }
+
+            item {
+                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.handoff_card_title), style = MaterialTheme.typography.titleSmall)
+                            Text(
+                                stringResource(R.string.handoff_card_body),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                        TextButton(onClick = onOpenHandoff) {
+                            Text(stringResource(R.string.handoff_card_cta))
+                        }
+                    }
+                }
             }
 
             if (!state.isBackendConfigured) {

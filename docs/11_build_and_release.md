@@ -44,8 +44,8 @@ keyAlias=upload
 keyPassword=＜控えたパスワード＞
 ```
 
-`app/build.gradle.kts` の release 署名設定は初回リリース準備時に追加する
-（現状は未設定 — クローズドテスト提出タスクの一部）。
+`app/build.gradle.kts` は `android/keystore.properties` が存在する場合のみ
+release署名を適用する設定済み。鍵とパスワードはGit管理外のため、別途安全にバックアップする。
 
 ```powershell
 .\gradlew.bat bundleProdRelease   # → app\build\outputs\bundle\prodRelease\app-prod-release.aab

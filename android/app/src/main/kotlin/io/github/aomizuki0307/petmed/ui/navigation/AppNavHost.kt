@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.aomizuki0307.petmed.ui.AppViewModel
 import io.github.aomizuki0307.petmed.ui.history.HistoryScreen
+import io.github.aomizuki0307.petmed.ui.handoff.HandoffScreen
 import io.github.aomizuki0307.petmed.ui.invite.InviteScreen
 import io.github.aomizuki0307.petmed.ui.invite.JoinHouseholdScreen
 import io.github.aomizuki0307.petmed.ui.meds.MedicationEditScreen
@@ -35,6 +36,7 @@ object Routes {
     const val MED_EDIT = "med_edit/{petId}?medId={medId}"
     const val TODAY = "today"
     const val HISTORY = "history"
+    const val HANDOFF = "handoff"
     const val INVITE = "invite"
     const val PAYWALL = "paywall?trigger={trigger}"
     const val SETTINGS = "settings"
@@ -123,6 +125,7 @@ fun AppNavHost(viewModel: AppViewModel) {
             TodayScreen(
                 viewModel = viewModel,
                 onOpenHistory = { navController.navigate(Routes.HISTORY) },
+                onOpenHandoff = { navController.navigate(Routes.HANDOFF) },
                 onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                 onOpenInvite = { navController.navigate(Routes.INVITE) },
                 onAddPet = { navController.navigate(Routes.petEdit()) },
@@ -136,6 +139,12 @@ fun AppNavHost(viewModel: AppViewModel) {
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
                 onOpenPaywall = { navController.navigate(Routes.paywall("history_lock")) },
+            )
+        }
+        composable(Routes.HANDOFF) {
+            HandoffScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() },
             )
         }
         composable(Routes.INVITE) {

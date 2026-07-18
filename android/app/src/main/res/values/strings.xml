@@ -87,6 +87,27 @@
     <string name="history_locked_cta">プランを見る</string>
     <string name="history_cancelled">（取り消し済み）</string>
 
+    <!-- 家族への引き継ぎ -->
+    <string name="handoff_title">家族への引き継ぎ</string>
+    <string name="handoff_card_title">次の人へ引き継ぐ</string>
+    <string name="handoff_card_body">今日の進み具合、次の薬、直近の記録を1画面で確認できます。</string>
+    <string name="handoff_card_cta">見る</string>
+    <string name="handoff_empty">世帯と投薬予定を登録すると、引き継ぎを表示できます。</string>
+    <string name="handoff_status_complete">今日の確認は完了です</string>
+    <string name="handoff_status_in_progress">引き継ぎがあります</string>
+    <string name="handoff_progress">確認済み %1$d/%2$d回（投薬済み %3$d・見送り %4$d）</string>
+    <string name="handoff_next_title">次に確認する薬</string>
+    <string name="handoff_scheduled">%1$s %2$s の予定</string>
+    <string name="handoff_overdue">%1$s %2$s の予定時刻を過ぎています</string>
+    <string name="handoff_remaining_title">その後の予定</string>
+    <string name="handoff_duplicate_title">重複記録を確認してください</string>
+    <string name="handoff_duplicate_line">%1$s / %2$s に %3$d件の投薬記録があります</string>
+    <string name="handoff_activity_title">直近の記録</string>
+    <string name="handoff_activity_empty">まだ記録がありません</string>
+    <string name="handoff_share">引き継ぎを共有</string>
+    <string name="handoff_share_chooser">引き継ぎの共有先</string>
+    <string name="handoff_disclaimer">この画面は家族間の記録共有用です。薬の要否や量を判断せず、必ず獣医師の指示に従ってください。</string>
+
     <!-- 招待 -->
     <string name="invite_title">家族を招待</string>
     <string name="invite_body">このコードを家族に伝えてください。72時間有効です。</string>

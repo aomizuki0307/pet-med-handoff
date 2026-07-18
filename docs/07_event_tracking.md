@@ -19,6 +19,8 @@
 | `dose_recorded` | status: given\|skipped\|given_late, source: app\|notification, isSecondCaregiver: bool, slotDate: "YYYY-MM-DD"（H2のdistinct日数集計に必須） | H1, H2 |
 | `double_dose_warned` | proceeded: bool, source?: notification（通知経由の抑止時のみ付与） | H1 |
 | `duplicate_detected_after_sync` | — | H1 |
+| `handoff_viewed` | — | H1, H2 |
+| `handoff_shared` | — | H1, H3 |
 | `invite_created` | — | H3 |
 | `invite_accepted` | memberCount | H3 |
 | `notification_opened` | — | H2 |

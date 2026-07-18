@@ -12,7 +12,7 @@ object ContainerFactory {
         val cache = ScheduleCache(app)
         return object : AppContainer {
             override val repository: PetCareRepository =
-                FakeInMemoryPetCareRepository(seedDemoData = false)
+                FakeInMemoryPetCareRepository(seedDemoData = true)
             override val analytics: AnalyticsLogger = analytics
             override val scheduleCache: ScheduleCache = cache
             override val alarmScheduler: AlarmScheduler = AlarmScheduler(app, cache, analytics)

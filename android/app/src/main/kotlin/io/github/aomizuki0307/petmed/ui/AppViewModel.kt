@@ -7,6 +7,8 @@ import io.github.aomizuki0307.petmed.PetMedApp
 import io.github.aomizuki0307.petmed.domain.DoseSlotCalculator
 import io.github.aomizuki0307.petmed.domain.DoubleDoseDetector
 import io.github.aomizuki0307.petmed.domain.FreeTierPolicy
+import io.github.aomizuki0307.petmed.domain.CareHandoffSummary
+import io.github.aomizuki0307.petmed.domain.CareHandoffSummaryBuilder
 import io.github.aomizuki0307.petmed.domain.model.DoseRecord
 import io.github.aomizuki0307.petmed.domain.model.DoseSlotInstance
 import io.github.aomizuki0307.petmed.domain.model.DoseStatus
@@ -50,6 +52,7 @@ data class AppUiState(
     val hasFullAccess: Boolean = true,
     val historyLimitDays: Long? = null,
     val isBackendConfigured: Boolean = true,
+    val handoffSummary: CareHandoffSummary? = null,
 )
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
@@ -102,6 +105,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 hasFullAccess = state?.let { FreeTierPolicy.hasFullAccess(it.household, now) } ?: true,
                 historyLimitDays = state?.let { FreeTierPolicy.historyLimitDays(it.household, now) },
                 isBackendConfigured = repo.isBackendConfigured,
+                handoffSummary = state?.let {
+                    CareHandoffSummaryBuilder.build(it, records, now)
+                },
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppUiState())
 

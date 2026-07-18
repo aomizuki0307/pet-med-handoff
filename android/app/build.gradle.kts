@@ -1,7 +1,16 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+}
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use(::load)
+    }
 }
 
 android {
@@ -28,8 +37,22 @@ android {
         }
     }
 
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -82,4 +105,13 @@ dependencies {
 // google-services.json がある場合のみプラグイン適用（無くても assemble が通る）
 if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
+
+    // The root config belongs to the production application id. Google
+    // Services otherwise tries to process every flavor and rejects the mock
+    // suffix even though that flavor has no Firebase dependency.
+    tasks.configureEach {
+        if (name.startsWith("processMock") && name.endsWith("GoogleServices")) {
+            enabled = false
+        }
+    }
 }

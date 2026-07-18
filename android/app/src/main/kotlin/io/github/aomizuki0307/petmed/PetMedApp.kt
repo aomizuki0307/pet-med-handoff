@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import androidx.work.Configuration
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -19,7 +20,10 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
-class PetMedApp : Application() {
+class PetMedApp : Application(), Configuration.Provider {
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder().build()
 
     lateinit var container: AppContainer
         private set
