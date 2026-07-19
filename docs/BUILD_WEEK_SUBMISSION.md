@@ -9,7 +9,9 @@
 - **Judge APK:** `https://github.com/aomizuki0307/pet-med-handoff/releases/tag/build-week-2026`
 - **Demo video URL:** `TODO_AFTER_YOUTUBE_PUBLICATION`
 - **Prepared 95-second MP4:** `https://github.com/aomizuki0307/pet-med-handoff/releases/download/build-week-2026/build-week-demo.mp4`
-- **Main Codex /feedback session ID:** `019f7203-4816-7e11-a87d-e21e93f74186`
+- **Main Codex /feedback session ID:** `TODO_IF_EVER_SUBMITTED` (removed 2026-07-20; the
+  previously recorded ID belonged to the Visual Contract main thread and must not be
+  reused for this project)
 
 ## Project description
 

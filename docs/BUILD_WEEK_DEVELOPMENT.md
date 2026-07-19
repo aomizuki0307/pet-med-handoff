@@ -9,8 +9,6 @@ and records how Codex and GPT-5.6 contributed.
 - First project commit: July 17, 2026 JST.
 - All repository code was created after the submission period opened.
 - Build Week completion pass: July 18, 2026 JST.
-- Main Codex `/feedback` session ID:
-  `019f7203-4816-7e11-a87d-e21e93f74186`.
 - Codex configuration during the completion pass: `gpt-5.6-sol`, high reasoning.
 
 The Git history is the timestamped source of truth for individual changes.
